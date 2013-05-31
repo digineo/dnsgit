@@ -1,0 +1,18 @@
+
+# PowerDNS paths
+named_conf: /etc/powerdns/named.conf
+zones_dir: /var/lib/powerdns/zones
+
+# Command to run after push
+execute: '/usr/bin/pdns_control reload'
+
+# SOA Record
+# Recommendations: http://www.ripe.net/ripe/docs/ripe-203
+soa:
+  primary: "ns1.example.com."
+  email: "webmaster@example.com"
+  ttl: "1H"
+  refresh: "1D"
+  retry: "2H"
+  expire: "1W"
+  minimumTTL: "2D"

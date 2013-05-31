@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+basedir="`dirname $0`/../.."
+
+# Extract the new commit id
+ref=`cat /dev/stdin | awk '{ print $2 }'`
+
+# Export working copy 
+export GIT_WORK_TREE=$basedir/tmp/cache
+mkdir -p $GIT_WORK_TREE
+GIT_WORK_TREE=$basedir/tmp/cache git checkout -f --quiet $ref
+
+# This loads RVM into a shell session.
+for file in /usr/local/lib/rvm $HOME/.rvm/scripts/rvm; do
+  if [[ -s "$file" ]]; then
+    source $file;
+  fi
+done
+
+#ruby --version
+
+# Generate Zones
+$basedir/bin/run.rb

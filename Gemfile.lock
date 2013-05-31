@@ -1,0 +1,10 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    zonefile (1.04)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  zonefile

@@ -1,0 +1,32 @@
+#!/bin/bash -e
+
+basedir=$( readlink -f $( dirname $0 )/.. )
+repo=$basedir/data
+tmp=$basedir/tmp/init
+
+if [ -e $repo ]; then
+  echo $repo does already exist
+  exit 1
+fi
+
+# Create a temporary directoy and fill working copy with examples
+mkdir -p $tmp
+cd $tmp
+cp -R $basedir/lib/example/* ./
+cp    $basedir/lib/example/.gitignore ./
+
+# Initialize repository
+git init --quiet
+git add -A
+git commit -m "Sample configuration" --quiet
+
+# Symlink hooks
+rm -rf .git/hooks
+ln -s ../bin/hooks .git/
+
+# Move bare repository and remove working copy
+mv $tmp/.git $repo
+rm -rf $tmp
+
+echo Please clone and update the configuration:
+echo \$ git clone $repo dns-config
