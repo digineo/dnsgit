@@ -110,8 +110,9 @@ class Zone
   
   def txt(*args)
     ttl  = extract_ttl! args
-    text = args.pop
+    text = args.pop.to_s.strip
     name = args.pop || '@'
+    text = "\"#{text}\"" if text =~ /\s/
     
     push :txt, name, ttl, text: text
   end
