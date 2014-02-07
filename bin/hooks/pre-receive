@@ -11,9 +11,10 @@ mkdir -p $GIT_WORK_TREE
 GIT_WORK_TREE=$basedir/tmp/cache git checkout -f --quiet $ref
 
 # This loads RVM into a shell session.
-for file in /usr/local/lib/rvm $HOME/.rvm/scripts/rvm; do
+for file in $HOME/.rvm/scripts/rvm /etc/profile.d/rvm.sh; do
   if [[ -s "$file" ]]; then
-    source $file;
+    source $file
+    break
   fi
 done
 
