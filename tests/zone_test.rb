@@ -139,4 +139,24 @@ describe Zone do
     end
   end
   
+
+  describe "tlsa record" do
+    it "should create tlsa record" do
+      subject.tlsa "www", 443, :tcp, 3, 0, 1, 'e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c'
+      subject.zonefile.tlsa.must_equal [{:class=>"IN", :name=>"_443._tcp.www", :ttl=>nil, :certificate_usage=>3, :selector=>0, :matching_type=>1, :data=>"e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c"}]
+    end
+
+    it "should create tlsa record without subdomain" do
+      subject.tlsa 443, :tcp, 3, 0, 1, 'e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c', 3600
+      subject.zonefile.tlsa.must_equal [{:class=>"IN", :name=>"_443._tcp", :ttl=>3600, :certificate_usage=>3, :selector=>0, :matching_type=>1, :data=>"e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c"}]
+    end
+
+    it "with invalid port" do
+      assert_raises ArgumentError do
+        subject.tlsa "www", 123456, :tcp, 3, 0, 1, 'e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c'
+      end
+    end
+  end
+
+
 end

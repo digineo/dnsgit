@@ -22,6 +22,9 @@ txt "google-site-verification=vEj1ZcGtXeM_UEjnCqQEhxPSqkS9IQ4PBFuh48FP8o4"
 # SRV records
 srv :sip, :tcp, "sipserver.example.net.", 5060
 
+# TLSA record
+tlsa 443, :tcp, "@", 0, 0, 1, "e36d9e402c6308273375b68297f7ae207521238f0cd812622672f0f2ce67eb1c"
+
 # Wildcard records
 a "*.user", "192.168.1.100"
 mx "*.user", "mail"

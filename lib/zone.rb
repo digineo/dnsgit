@@ -116,6 +116,28 @@ class Zone
     
     push :txt, name, ttl, text: text
   end
+
+  def tlsa(*args)
+    ttl      = extract_ttl! args
+    name     = args.shift if String===args[0]
+    name     = (name=="@" || !name) ? '' : "." << name
+    port     = args.shift
+    protocol = args.shift
+    usage    = args.shift
+    selector = args.shift
+    matching = args.shift
+    data     = args.shift
+
+    raise ArgumentError, "invalid port: #{port}"              if port < 0 || port > 65535
+    raise ArgumentError, "invalid protocol: #{protocol}"      if protocol.to_s !~ /^[a-z]+$/
+    raise ArgumentError, "no data given"                      unless data
+    raise ArgumentError, "invalid usage: #{usage}"            unless Fixnum === usage
+    raise ArgumentError, "invalid selector: #{selector}"      unless Fixnum === selector
+    raise ArgumentError, "invalid matching_type: #{matching}" unless Fixnum === matching
+
+    push :tlsa, "_#{port}._#{protocol}#{name}", ttl,
+      certificate_usage: usage, selector: selector, matching_type: matching, data: data
+  end
   
   # name in not-reversed order
   def ptr(name, host, ttl=nil)
