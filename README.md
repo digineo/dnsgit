@@ -13,12 +13,7 @@ DNS Git has been tested with:
 Installation
 ------------
 
-Please ensure your have Git and a current version of Ruby (1.9.3 or 2.0.0) installed.
-On Debian/Ubuntu you can do:
-	
-	apt-get install -y git-core curl
-	curl -L https://get.rvm.io | bash -s stable --ruby=2.0.0
-
+Please ensure your have Git and a current version of Ruby (at least 2.0) installed.
 Then clone the repository and install the required libraries using bundler.
 
 	git clone git://github.com/digineo/dnsgit /opt/dnsgit
@@ -28,7 +23,7 @@ Then clone the repository and install the required libraries using bundler.
 Finally, just generate a sample configuration.
 
 	bin/init
-	
+
 
 Configuration
 -------------
