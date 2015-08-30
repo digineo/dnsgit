@@ -46,10 +46,9 @@ class ZoneGenerator
 
   # Generates a single zone file
   def generate_zone(file, domain)
-    zone   = Zone.new(domain, @template_dir)
+    zone = Zone.new(domain, @template_dir, @soa)
     zone.send :eval_file, file
     new_zonefile = zone.zonefile
-    new_zonefile.soa.merge! @soa
 
     # path to the deployed version
     old_file = "#{@config[:zones_dir]}/#{domain}"

@@ -1,4 +1,6 @@
 
+soa minimumTTL: 3600*12
+
 template "example-dns"
 
 # A records

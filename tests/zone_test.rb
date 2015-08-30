@@ -7,6 +7,13 @@ describe Zone do
     Zone.new("example.com",nil)
   end
 
+  describe "soa" do
+    it "should create host" do
+      subject.soa ttl: "42m"
+      subject.zonefile.output.must_include "42m IN  SOA"
+    end
+  end
+
   describe "a record" do
     it "should create host" do
       subject.a "127.0.0.1"

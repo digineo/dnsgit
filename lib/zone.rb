@@ -1,16 +1,38 @@
 
 class Zone
 
+  SOA_FIELDS = %i(
+    ttl
+    origin
+    ttl
+    primary
+    email
+    serial
+    refresh
+    retry
+    expire
+    minimumTTL
+  )
+
   attr_reader :zonefile
 
-  def initialize(domain, template_dir)
+  def initialize(domain, template_dir, soa={})
     @domain   = domain
     @zonefile = Zonefile.new("","output/#{domain}", domain)
+    @zonefile.soa.merge! soa
     @template_dir = template_dir
   end
 
   def template(name)
     eval_file "#{@template_dir}/#{name}.rb"
+  end
+
+  # Merge
+  def soa(**options)
+    if (invalid_keys = options.keys - SOA_FIELDS).any?
+      raise ArgumentError, "invalid options: #{invalid_keys.inspect}"
+    end
+    @zonefile.soa.merge! options
   end
 
   # 1.2.3.4           - host
