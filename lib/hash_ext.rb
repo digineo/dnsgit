@@ -5,7 +5,7 @@ class Hash
     end
     self
   end
-  
+
   def deep_symbolize_keys!
     symbolize_keys!
     # symbolize each hash in .values
