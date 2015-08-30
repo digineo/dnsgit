@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require 'test_helper'
+require_relative 'test_helper'
 
 describe Zone do
 

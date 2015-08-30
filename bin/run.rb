@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-require File.expand_path('../../lib/environment',  __FILE__)
+require_relative '../lib/environment'
 
-generator = ZoneGenerator.new(BASEDIR)
+generator = ZoneGenerator.new "#{__dir__}/.."
 generator.generate
 generator.deploy

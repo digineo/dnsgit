@@ -3,8 +3,6 @@ require 'bundler/setup'
 require 'zonefile'
 require 'yaml'
 
-BASEDIR = File.expand_path('../..',  __FILE__)
-
-require "#{BASEDIR}/lib/hash_ext"
-require "#{BASEDIR}/lib/zone"
-require "#{BASEDIR}/lib/zone_generator"
+require_relative "hash_ext"
+require_relative "zone"
+require_relative "zone_generator"
