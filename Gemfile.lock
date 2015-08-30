@@ -1,9 +1,8 @@
 GIT
-  remote: git://github.com/digineo/zonefile.git
-  revision: 59f007e8dc0d9f25a6d586b63f74a96fb56bd0f4
-  branch: tlsa
+  remote: git://github.com/boesemar/zonefile.git
+  revision: 8cdcc2acdeaa6e35911d4c805a62bf96426c0762
   specs:
-    zonefile (1.05)
+    zonefile (1.06)
 
 GEM
   remote: https://rubygems.org/
