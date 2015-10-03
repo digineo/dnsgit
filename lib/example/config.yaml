@@ -13,6 +13,6 @@ soa:
   email: "webmaster@example.com"
   ttl: "1H"
   refresh: "1D"
-  retry: "2H"
+  retry: "3H"
   expire: "1W"
   minimumTTL: "2D"
