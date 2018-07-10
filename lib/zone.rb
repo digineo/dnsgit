@@ -1,6 +1,4 @@
-
 class Zone
-
   SOA_FIELDS = %i(
     ttl
     origin
@@ -153,9 +151,9 @@ class Zone
     raise ArgumentError, "invalid port: #{port}"              if port < 0 || port > 65535
     raise ArgumentError, "invalid protocol: #{protocol}"      if protocol.to_s !~ /^[a-z]+$/
     raise ArgumentError, "no data given"                      unless data
-    raise ArgumentError, "invalid usage: #{usage}"            unless Fixnum === usage
-    raise ArgumentError, "invalid selector: #{selector}"      unless Fixnum === selector
-    raise ArgumentError, "invalid matching_type: #{matching}" unless Fixnum === matching
+    raise ArgumentError, "invalid usage: #{usage}"            unless Integer === usage
+    raise ArgumentError, "invalid selector: #{selector}"      unless Integer === selector
+    raise ArgumentError, "invalid matching_type: #{matching}" unless Integer === matching
 
     push :tlsa, "_#{port}._#{protocol}#{name}", ttl,
       certificate_usage: usage, selector: selector, matching_type: matching, data: data
@@ -190,9 +188,9 @@ class Zone
     args.last.is_a?(Hash) ? args.pop : {}
   end
 
-  # extracts the last argument if it is a Fixnum
+  # extracts the last argument if it is an Integer
   def extract_ttl!(args)
-    args.pop if args.last.is_a?(Fixnum)
+    args.pop if args.last.is_a?(Integer)
   end
-
 end
+
