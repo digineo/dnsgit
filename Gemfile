@@ -1,3 +1,3 @@
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
-gem 'zonefile', '~> 1.5', github: 'boesemar/zonefile'
+gem "zonefile", ">= 1.06"

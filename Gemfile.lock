@@ -1,15 +1,13 @@
-GIT
-  remote: git://github.com/boesemar/zonefile.git
-  revision: 8cdcc2acdeaa6e35911d4c805a62bf96426c0762
-  specs:
-    zonefile (1.06)
-
 GEM
   remote: https://rubygems.org/
   specs:
+    zonefile (1.06)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  zonefile (~> 1.5)!
+  zonefile (>= 1.06)
+
+BUNDLED WITH
+   1.17.0

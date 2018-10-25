@@ -1,6 +1,4 @@
-
 class ZoneGenerator
-
   def initialize(basedir)
     @generated    = "#{basedir}/tmp/generated"
     @workspace    = "#{basedir}/tmp/cache"
@@ -39,7 +37,7 @@ class ZoneGenerator
         domain = File.basename(file).sub(/\.rb$/,"")
         generate_zone(file, domain)
 
-        f.puts "zone \"#{domain}\" IN { type master; file \"#{@config[:zones_dir]}/#{domain}\"; };"
+        f.puts %Q<zone "#{domain}" IN { type master; file "#{@config[:zones_dir]}/#{domain}"; };>
       end
     end
   end
@@ -95,9 +93,6 @@ class ZoneGenerator
     out = `#{cmd}`
     puts "done"
 
-    if $?.to_i != 0
-      raise out
-    end
+    raise out if $?.to_i != 0
   end
-
 end

@@ -67,7 +67,6 @@ class Zone
   # name, mx, 15      - name, host, priority
   # name, mx, 15, 600 - name, host, priority and TTL
   def mx(*args)
-
     if args[1].is_a?(String)
       # name and host given
       name = args.shift
@@ -180,7 +179,7 @@ class Zone
   end
 
   def push(type, name, ttl, options={})
-    @zonefile.send(type) << {class: 'IN', name: name, ttl: ttl, }.merge(options)
+    @zonefile.send(type) << {class: 'IN', name: name, ttl: ttl}.merge(options)
   end
 
   # extracts the last argument if it is a Hash
