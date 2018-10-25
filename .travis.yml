@@ -6,4 +6,10 @@ rvm:
   - 2.4
   - 2.5
 
-script: ruby -Ilib:test tests/zone_test.rb
+bundler_args: --with test
+before_install:
+  - gem update --system --no-doc
+  - gem install bundler --no-doc
+  - gem update bundler --no-doc
+script:
+  - bundle exec ruby -Ilib:tests tests/zone_test.rb
