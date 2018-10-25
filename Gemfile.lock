@@ -1,12 +1,14 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    minitest (5.11.3)
     zonefile (1.06)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  minitest
   zonefile (>= 1.06)
 
 BUNDLED WITH
