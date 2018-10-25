@@ -1,5 +1,7 @@
 # DNS Git
 
+[![Build Status](https://travis-ci.org/digineo/dnsgit.svg?branch=master)](https://travis-ci.org/digineo/dnsgit)
+
 Run your own DNS servers and manage your zones easily with Git.
 
 This piece of **free** software gives you the ability to describe your zone
