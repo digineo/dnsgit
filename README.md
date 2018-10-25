@@ -19,29 +19,37 @@ DNS Git has been tested with:
 Please ensure your have Git and a current version of Ruby (at least 2.0) installed.
 Then clone the repository and install the required libraries using bundler.
 
-	git clone git://github.com/digineo/dnsgit /opt/dnsgit
-	cd /opt/dnsgit
-	bundle install
+```console
+$ git clone git://github.com/digineo/dnsgit /opt/dnsgit
+$ cd /opt/dnsgit
+$ bundle install
+```
 
 Finally, just generate a sample configuration.
 
-	bin/init
+```console
+$ bin/init
+```
 
 
 ## Configuration
 
 Run these steps locally on your own machine:
 
-	git clone ssh://root@your-server/opt/dnsgit/data dns-config
-	cd dns-config
+```console
+$ git clone ssh://root@your-server/opt/dnsgit/data dns-config
+$ cd dns-config
+```
 
 ... do some changes ...
 
-	git add -A
-	git commit -m "my commit message"
-	git push
+```console
+$ git add -A
+$ git commit -m "my commit message"
+$ git push
+```
 
 ### Examples
 
-Take a look at the [/lib/example](https://github.com/digineo/dnsgit/tree/master/lib/example)
+Take a look at the [lib/example/](https://github.com/digineo/dnsgit/tree/master/lib/example)
 folder and the [tests](https://github.com/digineo/dnsgit/tree/master/tests/zone_test.rb).
