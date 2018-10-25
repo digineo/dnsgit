@@ -128,6 +128,28 @@ describe Zone do
     end
   end
 
+  describe "txt record" do
+    it "should create txt record" do
+      subject.txt "site-verification-token"
+      subject.zonefile.txt.must_equal [{class: "IN", name: "@", ttl: nil, text: "site-verification-token"}]
+    end
+
+    it "should create txt record, with ttl" do
+      subject.txt "site-verification-token", 60
+      subject.zonefile.txt.must_equal [{class: "IN", name: "@", ttl: 60, text: "site-verification-token"}]
+    end
+
+    it "should create txt record, with host" do
+      subject.txt "example.com.", "site-verification-token"
+      subject.zonefile.txt.must_equal [{class: "IN", name: "example.com.", ttl: nil, text: "site-verification-token"}]
+    end
+
+    it "should create txt record, with ttl, host" do
+      subject.txt "example.com.", "site-verification-token", 120
+      subject.zonefile.txt.must_equal [{class: "IN", name: "example.com.", ttl: 120, text: "site-verification-token"}]
+    end
+  end
+
   describe "ptr6 record" do
     it "with a double colon" do
       assert_raises ArgumentError do
