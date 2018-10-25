@@ -1,4 +1,14 @@
 class Zone
+  class Nested < Struct.new(:zone, :host)
+    def cname(name, *args)
+      zone.cname(name, host, *args)
+    end
+
+    def txt(text, *args)
+      zone.txt(host, text, *args)
+    end
+  end
+
   SOA_FIELDS = %i(
     ttl
     origin
@@ -36,29 +46,32 @@ class Zone
   # 1.2.3.4           - host
   # 1.2.3.4, 600      - host with TTL
   # www, 1.2.3.4, 600 - name, host and TTL
-  def a(*args)
+  def a(*args, &block)
     if [String,String,String] == args[0..2].map(&:class)
       # name, ipv4 and ipv6
       name = args.shift
       ipv4 = args.shift
       ipv6 = args.shift
-      a_record :a, name, ipv4, *args
-      a_record :a4, name, ipv6, *args
+      a_record :a, name, ipv4, *args, &block
+      a_record :a4, name, ipv6, *args, &block
     else
-      a_record :a, *args
+      a_record :a, *args, &block
     end
   end
 
-  def aaaa(*args)
-    a_record :a4, *args
+  def aaaa(*args, &block)
+    a_record :a4, *args, &block
   end
 
-  def a_record(type, *args)
+  def a_record(type, *args, &block)
     ttl  = extract_ttl! args
     host = args.pop
     name = args.pop || '@'
 
     push type, name, ttl, host: host
+    if block_given?
+      Nested.new(self, name).instance_eval(&block)
+    end
   end
 
   # mx                - host with default priority (10)

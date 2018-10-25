@@ -71,6 +71,23 @@ describe Zone do
     end
   end
 
+  describe "nesting records" do
+    it "under a" do
+      subject.a "test", "127.0.0.1" do
+        cname "www"
+        cname "www2", 600
+        txt "yada"
+        txt "yada-yada", 60
+      end
+
+      subject.zonefile.a.must_equal     [{class: "IN", name: "test", ttl: nil, host: "127.0.0.1"}]
+      subject.zonefile.cname.must_equal [{class: "IN", name: "www",  ttl: nil, host: "test"},
+                                         {class: "IN", name: "www2", ttl: 600, host: "test"}]
+      subject.zonefile.txt.must_equal   [{class: "IN", name: "test", ttl: nil, text: "yada"},
+                                         {class: "IN", name: "test", ttl: 60,  text: "yada-yada"}]
+    end
+  end
+
   describe "mx record" do
     it "should create without args" do
       subject.mx

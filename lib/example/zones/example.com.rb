@@ -30,3 +30,16 @@ tlsa 443, :tcp, "@", 0, 0, 1, "e36d9e402c6308273375b68297f7ae207521238f0cd812622
 # Wildcard records
 a "*.user", "192.168.1.100"
 mx "*.user", "mail"
+
+# Alternate nesting syntax (only for txt and cname records).
+# The following is equivalent to this:
+#
+#  a "i.am.nested", "10.20.30.40"
+#  cname "me.as.well",   "i.am.nested"
+#  cname "another-name", "i.am.nested", 600
+#  txt "i.am.nestet", "site-verification=token"
+a "i.am.nested", "10.20.30.40" do
+  cname "me.as.well"
+  cname "anoter-name", 600
+  txt "site-verification=token"
+end
