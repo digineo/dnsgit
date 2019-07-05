@@ -17,8 +17,12 @@ DNS Git has been tested with:
 
 ## Installation
 
-Please ensure your have Git and a current version of Ruby (at least 2.0) installed.
-Then clone the repository and install the required libraries using bundler.
+Please ensure you have Git and a current version of Ruby installed. While
+we aim to be compatible with MRI 2.0+, we currently only test against
+non-EOL versions (i.e. MRI 2.4+ at the time of writing).
+
+Then clone the repository (on the machine your nameserver runs on) and
+install the required libraries using bundler:
 
 ```console
 $ git clone git://github.com/digineo/dnsgit /opt/dnsgit
