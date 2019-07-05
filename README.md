@@ -25,15 +25,18 @@ Then clone the repository (on the machine your nameserver runs on) and
 install the required libraries using bundler:
 
 ```console
+$ ssh root@yourserver.example.com
 $ git clone git://github.com/digineo/dnsgit /opt/dnsgit
 $ cd /opt/dnsgit
 $ bundle install
 ```
 
-Finally, just generate a sample configuration.
+Finally, generate a sample configuration.
 
 ```console
 $ bin/init
+Please clone and update the configuration:
+  git clone /opt/dnsgit/data dns-config
 ```
 
 
@@ -42,7 +45,7 @@ $ bin/init
 Run these steps locally on your own machine:
 
 ```console
-$ git clone ssh://root@your-server/opt/dnsgit/data dns-config
+$ git clone root@yourserver.example.com:/opt/dnsgit/data dns-config
 $ cd dns-config
 ```
 
