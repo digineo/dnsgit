@@ -1,1 +1,1 @@
-require File.expand_path('../../lib/environment',  __FILE__)
+require File.expand_path("../lib/environment",  __dir__)

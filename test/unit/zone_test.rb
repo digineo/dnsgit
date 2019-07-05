@@ -2,9 +2,8 @@ require "minitest/autorun"
 require "test_helper"
 
 describe Zone do
-
   subject do
-    Zone.new("example.com",nil)
+    Zone.new("example.com", nil)
   end
 
   describe "soa" do

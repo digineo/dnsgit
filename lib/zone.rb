@@ -26,7 +26,7 @@ class Zone
 
   def initialize(domain, template_dir, soa={})
     @domain   = domain
-    @zonefile = Zonefile.new("","output/#{domain}", domain)
+    @zonefile = Zonefile.new("", "output/#{domain}", domain)
     @zonefile.soa.merge! soa
     @template_dir = template_dir
   end
