@@ -39,6 +39,7 @@ class ZoneGenerator
     @pdns_named_conf = Pathname.new config[:named_conf]
     @pdns_zones_dir = Pathname.new config[:zones_dir]
     @after_deploy = [*config[:execute]]
+    @changes = []
   end
 
   # Generates all zones
@@ -79,6 +80,7 @@ class ZoneGenerator
       # has anything changed?
       if new_output != old_output
         puts "#{domain} has been updated"
+        @changes << domain
         # increment serial
         new_zonefile.new_serial
         new_output = new_zonefile.output
@@ -86,6 +88,7 @@ class ZoneGenerator
     else
       # zone has not existed before
       puts "#{domain} has been created"
+      @changes << domain
       new_zonefile.new_serial
       new_output = new_zonefile.output
     end
@@ -103,12 +106,15 @@ class ZoneGenerator
     FileUtils.copy       @tmp_named, @pdns_named_conf
     FileUtils.copy_entry @tmp_zones, @pdns_zones_dir
 
+    env = { "ZONES_CHANGED" => @changes.join(",") }
     @after_deploy.each do |cmd|
       Dir.chdir(@workspace) do
-        print "Executing '#{cmd}' ... "
-        out = `#{cmd}`
-        puts "done"
-        raise out if $?.to_i != 0
+        printf "\e[33m%s\e[0m\n", "Executing '#{cmd}' ..."
+        puts IO.popen(env, cmd, "r", err: [:child, :out], &:read)
+        if $?.exitstatus != 0
+          printf "\e[31;1m%s\e[0m\n", "command finished with status #{$?.exitstatus}"
+          exit $?.exitstatus
+        end
       end
     end
   end

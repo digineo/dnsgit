@@ -3,7 +3,10 @@
 named_conf: /etc/powerdns/named.conf
 zones_dir: /var/lib/powerdns/zones
 
-# Command to run after push
+# Command or command array to run after push. The working directory
+# is a remote checkout of the repository. A list of changed zones
+# as comma-separated of domain names is available as $ZONES_CHANGED
+# environment variable.
 execute: '/usr/bin/pdns_control reload'
 
 # SOA Record

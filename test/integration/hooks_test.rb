@@ -27,8 +27,8 @@ describe "hooks" do
     # clone a copy of root dir into tmpwd/on-server
     root = Pathname.new(__dir__).join("../..")
     Dir.chdir @work do
+      # faster than `git clone ../.. ./on-server`
       FileUtils.cp_r root, @on_server
-      # execute "git", "clone", root, "./on-server"
     end
 
     # initialize copy
@@ -48,6 +48,7 @@ describe "hooks" do
       "templates/ns.rb"       => "templates/",
       "zones/example.com.rb"  => "zones/",
       "zones/example.org.rb"  => "zones/",
+      "onupdate.sh"           => "",
     }.each do |src, dst|
       FileUtils.cp root.join("test/fixtures/on-client", src), @on_client.join(dst)
     end
@@ -55,7 +56,7 @@ describe "hooks" do
       config = {
         "named_conf"    => @named_conf.to_s,
         "zones_dir"     => @zones_dir.to_s,
-        "execute"       => "echo 1",
+        "execute"       => ["echo 1", "./onupdate.sh", "echo 2"],
         "soa" => {
           "primary"     => "ns1.example.com.",
           "email"       => "webmaster@example.com",
@@ -71,7 +72,9 @@ describe "hooks" do
     Dir.chdir @on_client do
       execute "git", "add", "-A"
       execute "git", "commit", "-m", "hook integration test"
-      execute "git", "push"
+      @push_output = execute("git", "push")
+        .gsub(/^remote:\s?(.*?)\s*$/, '\1')
+        .gsub(/\e\[\d+m/, '')
     end
   end
 
@@ -94,6 +97,20 @@ describe "hooks" do
       _(File.exist? "zones/example.com").must_equal true
       _(File.exist? "zones/example.org").must_equal true
     end
+  end
+
+  it "executes hooks" do
+    @push_output.must_include [
+      "example.com has been created",
+      "example.org has been created",
+      "Executing 'echo 1' ...",
+      "1",
+      "Executing './onupdate.sh' ...",
+      "processing example.com ... done",
+      "processing example.org ... done",
+      "Executing 'echo 2' ...",
+      "2",
+    ].join("\n")
   end
 
   it "example.com zone is correct" do
