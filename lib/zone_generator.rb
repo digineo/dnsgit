@@ -39,14 +39,14 @@ class ZoneGenerator
     @pdns_named_conf = Pathname.new config[:named_conf]
     @pdns_zones_dir = Pathname.new config[:zones_dir]
     @after_deploy = [*config[:execute]]
-
-    # we don't want dead zone definitions
-    @generated.rmtree if @generated.exist?
-    @generated.mkpath
   end
 
   # Generates all zones
   def generate
+    # we don't want dead zone definitions
+    @generated.rmtree if @generated.exist?
+    @generated.mkpath
+
     @tmp_named.open("w") do |f|
       Pathname.glob(@zones_dir.join("**/*.rb")).sort.each do |file|
         domain = File.basename(file).sub(/\.rb$/, "")
