@@ -38,7 +38,7 @@ class ZoneGenerator
 
     @pdns_named_conf = Pathname.new config[:named_conf]
     @pdns_zones_dir = Pathname.new config[:zones_dir]
-    @after_deploy = config[:execute]
+    @after_deploy = [*config[:execute]]
 
     # we don't want dead zone definitions
     @generated.rmtree if @generated.exist?
@@ -103,12 +103,13 @@ class ZoneGenerator
     FileUtils.copy       @tmp_named, @pdns_named_conf
     FileUtils.copy_entry @tmp_zones, @pdns_zones_dir
 
-    if cmd = @after_deploy
-      print "Executing '#{cmd}' ... "
-      out = `#{cmd}`
-      puts "done"
-
-      raise out if $?.to_i != 0
+    @after_deploy.each do |cmd|
+      Dir.chdir(@workspace) do
+        print "Executing '#{cmd}' ... "
+        out = `#{cmd}`
+        puts "done"
+        raise out if $?.to_i != 0
+      end
     end
   end
 end
