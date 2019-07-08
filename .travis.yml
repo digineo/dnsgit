@@ -13,4 +13,4 @@ before_install:
   - gem install bundler --no-doc
   - gem update bundler --no-doc
 script:
-  - bundle exec ruby -Ilib:tests tests/zone_test.rb
+  - bundle exec rake test

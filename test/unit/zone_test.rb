@@ -1,5 +1,5 @@
-require 'minitest/autorun'
-require_relative 'test_helper'
+require "minitest/autorun"
+require "test_helper"
 
 describe Zone do
 
@@ -51,22 +51,22 @@ describe Zone do
     end
 
     it "with name" do
-      subject.cname 'www'
+      subject.cname "www"
       subject.zonefile.cname.must_equal [{class: "IN", name: "www", ttl: nil, host: "@"}]
     end
 
     it "with name, host" do
-      subject.cname 'www', "other-server."
+      subject.cname "www", "other-server."
       subject.zonefile.cname.must_equal [{class: "IN", name: "www", ttl: nil, host: "other-server."}]
     end
 
     it "with name, ttl" do
-      subject.cname 'www', 600
+      subject.cname "www", 600
       subject.zonefile.cname.must_equal [{class: "IN", name: "www", ttl: 600, host: "@"}]
     end
 
     it "with name, ttl, host" do
-      subject.cname 'www', "other-server.", 600
+      subject.cname "www", "other-server.", 600
       subject.zonefile.cname.must_equal [{class: "IN", name: "www", ttl: 600, host: "other-server."}]
     end
   end
@@ -113,27 +113,27 @@ describe Zone do
   describe "srv record" do
     it "without port" do
       assert_raises ArgumentError do
-        subject.srv :ldap, :tcp, 'ldap01'
+        subject.srv :ldap, :tcp, "ldap01"
       end
     end
 
     it "should create srv record" do
-      subject.srv :ldap, :tcp, 'ldap01', 389
+      subject.srv :ldap, :tcp, "ldap01", 389
       subject.zonefile.srv.must_equal [{class: "IN", name: "_ldap._tcp", ttl: nil, pri: 10, weight: 0, host: "ldap01", port: 389}]
     end
 
     it "should create srv record with ttl" do
-      subject.srv :ldap, :tcp, 'ldap01', 389, 600
+      subject.srv :ldap, :tcp, "ldap01", 389, 600
       subject.zonefile.srv.must_equal [{class: "IN", name: "_ldap._tcp", ttl: 600, pri: 10, weight: 0, host: "ldap01", port: 389}]
     end
 
     it "should create srv record with pri and weight" do
-      subject.srv :ldap, :tcp, 'ldap01', 389, pri: 15, weight: 3
+      subject.srv :ldap, :tcp, "ldap01", 389, pri: 15, weight: 3
       subject.zonefile.srv.must_equal [{class: "IN", name: "_ldap._tcp", ttl: nil, pri: 15, weight: 3, host: "ldap01", port: 389}]
     end
 
     it "should create srv record with name" do
-      subject.srv "foo", :ldap, :tcp, 'ldap01', 389
+      subject.srv "foo", :ldap, :tcp, "ldap01", 389
       subject.zonefile.srv.must_equal [{class: "IN", name: "_ldap._tcp.foo", ttl: nil, pri: 10, weight: 0, host: "ldap01", port: 389}]
     end
   end
@@ -187,7 +187,7 @@ describe Zone do
 
   describe "tlsa record" do
     it "should create tlsa record" do
-      subject.tlsa "www", 443, :tcp, 3, 0, 1, 'e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c'
+      subject.tlsa "www", 443, :tcp, 3, 0, 1, "e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c"
       subject.zonefile.tlsa.must_equal [{
         class:              "IN",
         name:               "_443._tcp.www",
@@ -200,7 +200,7 @@ describe Zone do
     end
 
     it "should create tlsa record without subdomain" do
-      subject.tlsa 443, :tcp, 3, 0, 1, 'e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c', 3600
+      subject.tlsa 443, :tcp, 3, 0, 1, "e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c", 3600
       subject.zonefile.tlsa.must_equal [{
         class:              "IN",
         name:               "_443._tcp",
@@ -214,7 +214,7 @@ describe Zone do
 
     it "with invalid port" do
       assert_raises ArgumentError do
-        subject.tlsa "www", 123456, :tcp, 3, 0, 1, 'e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c'
+        subject.tlsa "www", 123456, :tcp, 3, 0, 1, "e31d9e402c6308273375b68297f7af207521238f0cd812622672f0f2ce67eb1c"
       end
     end
   end

@@ -14,6 +14,7 @@ serial numbers, if necessary. We have been inspired by [LuaDNS](http://www.luadn
 DNS Git has been tested with:
 * [PowerDNS](https://www.powerdns.com/)
 
+
 ## Installation
 
 Please ensure your have Git and a current version of Ruby (at least 2.0) installed.
@@ -49,7 +50,13 @@ $ git commit -m "my commit message"
 $ git push
 ```
 
+
 ### Examples
 
 Take a look at the [lib/example/](https://github.com/digineo/dnsgit/tree/master/lib/example)
 folder and the [tests](https://github.com/digineo/dnsgit/tree/master/tests/zone_test.rb).
+
+
+## Development
+
+To run tests, simply invoke `rake`.
