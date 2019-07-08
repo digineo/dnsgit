@@ -44,7 +44,6 @@ describe "hooks" do
     # prepare tmpwd/on-client
     @on_client.join("templates").each_child(&:delete)
     @on_client.join("zones").each_child(&:delete)
-    fixtures =
     {
       "templates/ns.rb"       => "templates/",
       "zones/example.com.rb"  => "zones/",
