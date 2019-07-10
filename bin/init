@@ -29,4 +29,4 @@ mv $tmp/.git $repo
 rm -rf $tmp
 
 echo "Please clone and update the configuration:"
-echo "  git clone $repo dns-config"
+echo "  git clone $(id -un)@$(hostname -f):$repo dns-config"

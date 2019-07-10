@@ -26,17 +26,18 @@ install the required libraries using bundler:
 
 ```console
 $ ssh root@yourserver.example.com
-$ git clone git://github.com/digineo/dnsgit /opt/dnsgit
-$ cd /opt/dnsgit
-$ bundle install
+# git clone git://github.com/digineo/dnsgit /opt/dnsgit
+# cd /opt/dnsgit
+# bundle install --without sqlite
+# bundle install --with sqlite
 ```
 
 Finally, generate a sample configuration.
 
 ```console
-$ bin/init
+# bin/init
 Please clone and update the configuration:
-  git clone /opt/dnsgit/data dns-config
+  git clone root@yourserver.example.com:/opt/dnsgit/data dns-config
 ```
 
 
