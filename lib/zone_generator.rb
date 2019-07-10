@@ -15,7 +15,11 @@ class ZoneGenerator
     config.deep_symbolize_keys!
     check_config!(config)
 
-    @backend = Backend::BIND.new(basedir, config)
+    @backend = if config.key?(:bind)
+      Backend::BIND.new(basedir, config)
+    elsif config.key?(:sqlite)
+      Backend::SQLite.new(basedir, config)
+    end
 
     @after_deploy = [*config[:execute]]
   end
@@ -44,15 +48,21 @@ class ZoneGenerator
   def check_config!(config)
     errors = []
 
-    if !(config.key?(:bind))
-      errors << "missing 'bind' settings"
-    else
+    if !(config.key?(:bind) ^ config.key?(:sqlite))
+      errors << "please ensure you have exactly one setting for 'bind' or 'sqlite'"
+
+    elsif config.key?(:bind)
       if !config[:bind].key?(:named_conf)
         errors << "mssing 'bind.named_conf'"
       end
 
       if !config[:bind].key?(:zones_dir)
         errors << "missing 'bind.zones_dir'"
+      end
+
+    elsif config.key?(:sqlite)
+      if !config[:sqlite].key?(:db_path)
+        errors << "missing 'sqlite.db_path'"
       end
     end
 

@@ -1,7 +1,11 @@
 # PowerDNS configuration
+#
+# Either one of "bind" or "sqlite" must be present, but not both.
 bind:
   named_conf: /etc/powerdns/named.conf
   zones_dir:  /var/lib/powerdns/zones
+sqlite:
+  db_path:    /var/lib/powerdns/powerdns.sqlite3
 
 # Command or array of commands to run after push. The working directory
 # is a remote checkout of the repository. A list of changed zones

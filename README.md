@@ -28,6 +28,13 @@ install the required libraries using bundler:
 $ ssh root@yourserver.example.com
 # git clone git://github.com/digineo/dnsgit /opt/dnsgit
 # cd /opt/dnsgit
+```
+
+Depending on whether or not you have PowerDNS configured with
+`launch=bind` or `launch=gsqlite3`, you need to execute one of these
+commands:
+
+```console
 # bundle install --without sqlite
 # bundle install --with sqlite
 ```
@@ -50,13 +57,22 @@ $ git clone root@yourserver.example.com:/opt/dnsgit/data dns-config
 $ cd dns-config
 ```
 
-... do some changes ...
+The first thing you should do after setup is modify the contained
+`config.yml` and update the values according to your PowerDNS
+installation (remove `sqlite:` section for `launch=bind` or remove
+`bind:` section for `launch=gsqlite3`).
+
+Once that's done, you can update the zones.
+
+Then push your changes back to the server.
 
 ```console
 $ git add -A
 $ git commit -m "my commit message"
 $ git push
 ```
+
+On error, your commit will be rejected.
 
 
 ### Examples
