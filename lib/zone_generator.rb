@@ -1,121 +1,79 @@
 require "pathname"
+require "yaml"
 
 class ZoneGenerator
   def self.run(basedir)
-    zg = new basedir
-    zg.generate
-    zg.deploy
+    new(basedir).deploy
   end
+
+  attr_reader :workspace
 
   def initialize(basedir)
-    basedir = Pathname.new(basedir)
-
-    @generated    = basedir.join "tmp/generated"
-    @workspace    = basedir.join "tmp/cache"
-    @zones_dir    = @workspace.join "zones"
-    @template_dir = @workspace.join "templates"
-
-    @tmp_named = @generated.join "named.conf"
-    @tmp_zones = @generated.join "zones"
-
-    config = YAML.load @workspace.join("config.yaml").read
+    basedir     = Pathname.new(basedir)
+    @workspace  = basedir.join("tmp/cache")
+    config      = YAML.load workspace.join("config.yaml").read
     config.deep_symbolize_keys!
-    @soa = {
-      origin:     "@",
-      ttl:        "86400",
-      primary:    "example.com.",
-      email:      "hostmaster@example.com",
-      refresh:    "8H",
-      retry:      "2H",
-      expire:     "1W",
-      minimumTTL: "11h"
-    }.merge(config[:soa])
+    check_config!(config)
 
-    # Rewrite email address
-    if (email = @soa[:email]).include?("@")
-      @soa[:email] = email.sub("@", ".") << "."
-    end
+    @backend = Backend::BIND.new(basedir, config)
 
-    @pdns_named_conf = Pathname.new config[:named_conf]
-    @pdns_zones_dir = Pathname.new config[:zones_dir]
     @after_deploy = [*config[:execute]]
-    @changes = []
   end
 
-  # Generates all zones
-  def generate
-    # we don't want dead zone definitions
-    @generated.rmtree if @generated.exist?
-    @generated.mkpath
-
-    @tmp_named.open("w") do |f|
-      Pathname.glob(@zones_dir.join("**/*.rb")).sort.each do |file|
-        domain = File.basename(file).sub(/\.rb$/, "")
-        generate_zone(file, domain)
-
-        f.puts %Q<zone "#{domain}" IN { type master; file "#{@pdns_zones_dir}/#{domain}"; };>
-      end
-    end
-  end
-
-  # Generates a single zone file
-  def generate_zone(file, domain)
-    zone = Zone.new(domain, @template_dir.to_s, @soa)
-    zone.send :eval_file, file.to_s
-    new_zonefile = zone.zonefile
-
-    # path to the deployed version
-    old_file = Pathname.new(@pdns_zones_dir).join(domain)
-
-    # is there already a deployed version?
-    if old_file.exist?
-      # parse the deployed version
-      old_output   = old_file.read
-      old_zonefile = Zonefile.new(old_output)
-      new_zonefile.soa[:serial] = old_zonefile.soa[:serial]
-
-      # content of the new version
-      new_output = new_zonefile.output
-
-      # has anything changed?
-      if new_output != old_output
-        puts "#{domain} has been updated"
-        @changes << domain
-        # increment serial
-        new_zonefile.new_serial
-        new_output = new_zonefile.output
-      end
-    else
-      # zone has not existed before
-      puts "#{domain} has been created"
-      @changes << domain
-      new_zonefile.new_serial
-      new_output = new_zonefile.output
-    end
-
-    # Write new zonefile
-    output_file_path = @tmp_zones.join(domain)
-    output_file_path.dirname.mkpath
-    output_file_path.open("w") {|f| f.write new_output }
-  end
-
+  # Performs deployment and executes callbacks
   def deploy
-    # Remove zones directory
-    @pdns_zones_dir.rmtree
+    @backend.deploy
 
-    FileUtils.copy       @tmp_named, @pdns_named_conf
-    FileUtils.copy_entry @tmp_zones, @pdns_zones_dir
-
-    env = { "ZONES_CHANGED" => @changes.join(",") }
+    env = {
+      "ZONES_CHANGED" => @backend.zones_changed.join(","),
+    }
     @after_deploy.each do |cmd|
-      Dir.chdir(@workspace) do
-        printf "\e[33m%s\e[0m\n", "Executing '#{cmd}' ..."
+      Dir.chdir(workspace) do
+        puts_in_yellow "Executing '#{cmd}' ..."
         puts IO.popen(env, cmd, "r", err: [:child, :out], &:read)
         if $?.exitstatus != 0
-          printf "\e[31;1m%s\e[0m\n", "command finished with status #{$?.exitstatus}"
+          puts_in_red "command finished with status #{$?.exitstatus}"
           exit $?.exitstatus
         end
       end
     end
+  end
+
+  private
+
+  def check_config!(config)
+    errors = []
+
+    if !(config.key?(:bind))
+      errors << "missing 'bind' settings"
+    else
+      if !config[:bind].key?(:named_conf)
+        errors << "mssing 'bind.named_conf'"
+      end
+
+      if !config[:bind].key?(:zones_dir)
+        errors << "missing 'bind.zones_dir'"
+      end
+    end
+
+    if !config.key?(:soa)
+      errors << "missing 'soa' settings"
+    end
+
+    if errors.length > 0
+      puts_in_red "incomplete or invalid configuration"
+      errors.each do |err|
+        puts_in_yellow "  - #{err}"
+      end
+      exit 1
+    end
+  end
+
+  def puts_in_yellow(msg)
+    printf "\e[33m%s\e[0m\n", msg
+  end
+
+  def puts_in_red(msg)
+    printf "\e[31;1m%s\e[0m\n", msg
   end
 end

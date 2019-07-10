@@ -1,8 +1,9 @@
 require "rubygems"
-require "bundler/setup"
-require "zonefile"
-require "yaml"
+require "bundler"
+
+Bundler.require(:default)
 
 require_relative "hash_ext"
 require_relative "zone"
+require_relative "backend"
 require_relative "zone_generator"

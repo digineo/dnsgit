@@ -1,9 +1,9 @@
+# PowerDNS configuration
+bind:
+  named_conf: /etc/powerdns/named.conf
+  zones_dir:  /var/lib/powerdns/zones
 
-# PowerDNS paths
-named_conf: /etc/powerdns/named.conf
-zones_dir: /var/lib/powerdns/zones
-
-# Command or command array to run after push. The working directory
+# Command or array of commands to run after push. The working directory
 # is a remote checkout of the repository. A list of changed zones
 # as comma-separated of domain names is available as $ZONES_CHANGED
 # environment variable.
@@ -12,10 +12,10 @@ execute: '/usr/bin/pdns_control reload'
 # SOA Record
 # Recommendations: http://www.ripe.net/ripe/docs/ripe-203
 soa:
-  primary: "ns1.example.com."
-  email: "webmaster@example.com"
-  ttl: "1H"
-  refresh: "1D"
-  retry: "3H"
-  expire: "1W"
+  primary:    "ns1.example.com."
+  email:      "webmaster@example.com"
+  ttl:        "1H"
+  refresh:    "1D"
+  retry:      "3H"
+  expire:     "1W"
   minimumTTL: "2D"

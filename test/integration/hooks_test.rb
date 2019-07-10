@@ -54,8 +54,10 @@ describe "hooks" do
     end
     @on_client.join("config.yaml").open("w") do |f|
       config = {
-        "named_conf"    => @named_conf.to_s,
-        "zones_dir"     => @zones_dir.to_s,
+        "bind" => {
+          "named_conf"  => @named_conf.to_s,
+          "zones_dir"   => @zones_dir.to_s,
+        },
         "execute"       => ["echo 1", "./onupdate.sh", "echo 2"],
         "soa" => {
           "primary"     => "ns1.example.com.",

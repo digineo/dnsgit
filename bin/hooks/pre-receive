@@ -21,4 +21,4 @@ done
 #ruby --version
 
 # Generate Zones
-$basedir/bin/run.rb
+ruby -I$basedir/lib $basedir/bin/run.rb
