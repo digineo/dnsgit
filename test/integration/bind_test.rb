@@ -81,7 +81,7 @@ describe "hooks" do
   end
 
   EMPTY_RRTYPES =%i[
-    a a4 dnskey ds naptr nsec nsec3 nsec3param ptr rrsig soa spf srv tlsa txt
+    a a4 dnskey ds naptr nsec nsec3 nsec3param ptr rrsig spf srv tlsa txt caa
   ].each_with_object({}) {|rtype, map|
     map[rtype] = []
   }
