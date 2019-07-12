@@ -1,11 +1,6 @@
 source "https://rubygems.org"
 
-git_source :github do |name|
-  name = "#{name}/#{name}" unless name.include?("/")
-  "https://github.com/#{name}.git"
-end
-
-gem "zonefile", "~> 2.0.0", github: "digineo/zonefile"
+gem "zonefile", "~> 2.1.0", git: "https://github.com/digineo/zonefile.git"
 
 group :sqlite do
   gem "sqlite3"

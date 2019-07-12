@@ -9,7 +9,7 @@ describe Zone do
   describe "soa" do
     it "should create host" do
       subject.soa ttl: "42m"
-      subject.zonefile.output.must_include "42m IN  SOA"
+      subject.zonefile.output.must_include %w[42m IN SOA].join("\t")
     end
   end
 
