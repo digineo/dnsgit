@@ -57,6 +57,7 @@ describe Backend::SQLite do
         "sqlite" => {
           "db_path"     => @db_path.to_s,
         },
+        "execute"       => ["echo 1", "./onupdate.sh", "echo 2"],
         "soa" => {
           "primary"     => "ns1.example.com.",
           "email"       => "webmaster@example.com",
@@ -99,6 +100,20 @@ describe Backend::SQLite do
 
   it "creates DB file" do
     assert @db_path.exist?
+  end
+
+  it "executes hooks" do
+    assert_includes @push_output, [
+      "example.com has been updated",
+      "example.org has been updated",
+      "Executing 'echo 1' ...",
+      "1",
+      "Executing './onupdate.sh' ...",
+      "processing example.com ... done",
+      "processing example.org ... done",
+      "Executing 'echo 2' ...",
+      "2",
+    ].join("\n")
   end
 
   it "creates zones" do
