@@ -28,7 +28,6 @@ module Backend
       @soa[:email] << "."         if @soa[:email][-1] != "."
 
       @zones_changed = []
-
     end
 
     def mark_changed(domain, reason)

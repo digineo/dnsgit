@@ -142,7 +142,6 @@ describe Backend::SQLite do
     records
   end
 
-
   it "example.com zone is correct" do
     have = fetch_records("example.com")
     assert_equal [{

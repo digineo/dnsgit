@@ -155,6 +155,7 @@ module Backend
           "id"        => work.id,
           "checksum"  => work.checksum,
         })
+        mark_changed(domain, :updated)
       end
     end
 
