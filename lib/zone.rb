@@ -47,11 +47,9 @@ class Zone
   # 1.2.3.4, 600      - host with TTL
   # www, 1.2.3.4, 600 - name, host and TTL
   def a(*args, &block)
-    if [String,String,String] == args[0..2].map(&:class)
+    if [String, String, String] == args[0..2].map(&:class)
       # name, ipv4 and ipv6
-      name = args.shift
-      ipv4 = args.shift
-      ipv6 = args.shift
+      name, ipv4, ipv6 = args.shift(3)
       a_record :a, name, ipv4, *args, &block
       a_record :a4, name, ipv6, *args, &block
     else
@@ -68,10 +66,8 @@ class Zone
     host = args.pop
     name = args.pop || '@'
 
-    push type, name, ttl, host: host
-    if block_given?
-      Nested.new(self, name).instance_eval(&block)
-    end
+    push(type, name, ttl, host: host) if present?(host)
+    Nested.new(self, name).instance_eval(&block) if block_given?
   end
 
   # mx                - host with default priority (10)
@@ -82,8 +78,7 @@ class Zone
   def mx(*args)
     if args[1].is_a?(String)
       # name and host given
-      name = args.shift
-      host = args.shift
+      name, host = args.shift(2)
     else
       # only host given
       host = args.shift || '@'
@@ -103,13 +98,14 @@ class Zone
     host = args.pop
     name = args.pop || '@'
 
-    push :ns, name, ttl, host: host
+    push(:ns, name, ttl, host: host) if present?(host)
   end
 
   def cname(name, *args)
     ttl  = extract_ttl! args
+    host = args.pop || "@"
 
-    push :cname, name, ttl, host: (args.pop || "@")
+    push :cname, name, ttl, host: host
   end
 
   def srv(*args)
@@ -118,13 +114,10 @@ class Zone
 
     raise ArgumentError, "wrong number of arguments" unless (4..5).include?(args.count)
 
-    service  = args.shift
-    protocol = args.shift
-    host     = args.shift
-    port     = args.shift
-    ttl      = extract_ttl! args
+    service, proto, host, port = args.shift(4)
+    ttl = extract_ttl! args
 
-    options.each do |key,val|
+    options.each do |key, val|
       case key
       when :pri, :weight
         raise ArgumentError, "invalid #{key}: #{val}" if val.to_s !~ /^\d+$/
@@ -137,7 +130,7 @@ class Zone
     options[:pri]    ||= 10
     options[:weight] ||= 0
 
-    push :srv, "_#{service}._#{protocol}#{name}", ttl, options.merge(host: host, port: port)
+    push :srv, "_#{service}._#{proto}#{name}", ttl, options.merge(host: host, port: port)
   end
 
   def txt(*args)
@@ -153,22 +146,20 @@ class Zone
     ttl      = extract_ttl! args
     name     = args.shift if String===args[0]
     name     = (name=="@" || !name) ? '' : "." << name
-    port     = args.shift
-    protocol = args.shift
-    usage    = args.shift
-    selector = args.shift
-    matching = args.shift
-    data     = args.shift
+    port, proto, usage, selector, matching, data = args.shift(6)
 
     raise ArgumentError, "invalid port: #{port}"              if port < 0 || port > 65535
-    raise ArgumentError, "invalid protocol: #{protocol}"      if protocol.to_s !~ /^[a-z]+$/
+    raise ArgumentError, "invalid protocol: #{proto}"         if proto.to_s !~ /^[a-z]+$/
     raise ArgumentError, "no data given"                      unless data
     raise ArgumentError, "invalid usage: #{usage}"            unless Integer === usage
     raise ArgumentError, "invalid selector: #{selector}"      unless Integer === selector
     raise ArgumentError, "invalid matching_type: #{matching}" unless Integer === matching
 
-    push :tlsa, "_#{port}._#{protocol}#{name}", ttl,
-      certificate_usage: usage, selector: selector, matching_type: matching, data: data
+    push :tlsa, "_#{port}._#{proto}#{name}", ttl,
+      certificate_usage:  usage,
+      selector:           selector,
+      matching_type:      matching,
+      data:               data
   end
 
   # name in not-reversed order
@@ -203,6 +194,10 @@ class Zone
   # extracts the last argument if it is an Integer
   def extract_ttl!(args)
     args.pop if args.last.is_a?(Integer)
+  end
+
+  def present?(s)
+    !s.nil? && s != ""
   end
 end
 

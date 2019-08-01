@@ -1,3 +1,4 @@
+require "digest/sha1"
 Bundler.require :sqlite
 
 module Backend
@@ -48,9 +49,10 @@ module Backend
         domain   = file.basename.sub_ext("").to_s
         D { "build zonefile for #{domain}" }
         zonefile = build_zone_file(file, domain)
-        zones[domain] = Work.new(zonefile).tap{|work|
+
+        zones[domain] = Work.new(zonefile).tap {|work|
           # will be annotated with current values in #annotate_state
-          work.serial      = 0
+          work.serial      = zonefile.soa[:serial] || 0
           work.need_update = true
         }
       end
@@ -165,7 +167,7 @@ module Backend
         end
 
         name = rr.name == "@" ? origin : "#{rr.name}.#{origin}"
-        content = content.split(/\s+/).map{|e| e.chomp(".") }.join(" ")
+        content = content.split(/\s+/).map{|e| e.gsub("@", origin).chomp(".") }.join(" ")
 
         execute_prepared(:insert_record, {
           "domain_id" => domain_id,

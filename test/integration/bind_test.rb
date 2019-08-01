@@ -4,7 +4,7 @@ require "test_helper"
 require "pathname"
 require "tmpdir"
 
-describe "hooks" do
+describe Backend::BIND do
   def execute(cmd, *args)
     cmd = [cmd, *args].map(&:to_s)
     out = IO.popen(cmd, "r", err: [:child, :out], &:read)
@@ -80,7 +80,7 @@ describe "hooks" do
     end
   end
 
-  EMPTY_RRTYPES =%i[
+  EMPTY_RRTYPES = %i[
     a a4 dnskey ds naptr nsec nsec3 nsec3param ptr rrsig spf srv tlsa txt caa
   ].each_with_object({}) {|rtype, map|
     map[rtype] = []

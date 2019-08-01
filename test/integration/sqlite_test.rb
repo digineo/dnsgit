@@ -5,7 +5,7 @@ require "pathname"
 require "tmpdir"
 Bundler.require :sqlite
 
-describe "hooks" do
+describe Backend::SQLite do
   def execute(cmd, *args)
     cmd = [cmd, *args].map(&:to_s)
     out = IO.popen(cmd, "r", err: [:child, :out], &:read)
@@ -84,12 +84,6 @@ describe "hooks" do
     end
   end
 
-  EMPTY_RRTYPES =%i[
-    a a4 dnskey ds naptr nsec nsec3 nsec3param ptr rrsig spf srv tlsa txt caa
-  ].each_with_object({}) {|rtype, map|
-    map[rtype] = []
-  }
-
   before do
     prepare!
   end
@@ -120,12 +114,13 @@ describe "hooks" do
     assert have.key?("example.org")
     # If this test fails on or after 2125-01-01: congratulations, you're
     # looking at centennial code. Do you still use DNS in the future?
-    assert_equal have["example.com"], "9134e0355377e1fc9a1699caa816b5d5d4c3efe5"
-    assert_equal have["example.org"], "af01556805ffade54f3843e650bcf1033738a7c7"
+    assert_equal have["example.com"], "e7dd4dcfdcf0a320d0297d388e8e00d75b918038"
+    assert_equal have["example.org"], "4ec2a3af6beb3eb11ebad8ba88816f1c1a636058"
   end
 
-  it "example.com zone is correct" do
-    have = Hash.new {|h,k| h[k] = [] }
+  def fetch_records(domain)
+    records = Hash.new {|h,k| h[k] = [] }
+
     with_db do |db|
       q = <<~SQL.freeze
         select  records.name
@@ -136,38 +131,44 @@ describe "hooks" do
         from records
         inner join domains on domains.id = records.domain_id
         where records.disabled = 0
-          and domains.name = 'example.com'
+          and domains.name = '#{domain}'
       SQL
       db.execute(q) do |row|
         name, type, content, ttl, prio = row
-        have[type] << { name: name, content: content, ttl: ttl, prio: prio }
+        records[type] << { name: name, content: content, ttl: ttl, prio: prio }
       end
+    end
 
-      # zf.soa.must_equal({
-      #   origin:     "@",
-      #   primary:    "ns1.example.com.",
-      #   email:      "webmaster.example.com.",
-      #   refresh:    "1D",
-      #   ttl:        "1H",
-      #   minimumTTL: (3600*12).to_s,
-      #   retry:      "3H",
-      #   expire:     "1W",
-      #   serial:     Time.now.strftime("%Y%m%d00"),
-      # })
+    records
+  end
 
-      # soa = have.fetch("SOA")[0]
-      # assert_equal "1H"
 
-      {
-        "A"     => [{ name: "example.com",     content: "192.168.1.1",          ttl: nil,  prio: 0 },
-                    { name: "a.example.com",   content: "192.168.1.2",          ttl: 3600, prio: 0 }],
-        "AAAA"  => [{ name: "example.com",     content: "2001:4860:4860::8888", ttl: nil,  prio: 0 }],
-        "CNAME" => [{ name: "www.example.com", content: "@",                    ttl: nil,  prio: 0 }],
-        "MX"    => [{ name: "example.com",     content: "mx1",                  ttl: nil,  prio: 10 }],
-        "NS"    => [{ name: "example.com",     content: "ns1.example.com",      ttl: nil,  prio: 0 }]
-      }.each do |rtype, records|
-        assert_equal records, have[rtype], "RRTYPE #{rtype} mismatch"
-      end
+  it "example.com zone is correct" do
+    have = fetch_records("example.com")
+    assert_equal [{
+      name:     "example.com",
+      ttl:      3600,
+      prio:     0,
+      content:  [
+        "ns1.example.com",
+        "webmaster.example.com",
+        2124123101,
+        24 * 3600,      # refresh
+        3 * 3600,       # retry
+        7 * 24 * 3600,  # expire
+        12 * 3600,      # min ttl
+      ].join(" "),
+    }], have.fetch("SOA")
+
+    {
+      "A"     => [{ name: "example.com",     content: "192.168.1.1",          ttl: nil,  prio: 0 },
+                  { name: "a.example.com",   content: "192.168.1.2",          ttl: 3600, prio: 0 }],
+      "AAAA"  => [{ name: "example.com",     content: "2001:4860:4860::8888", ttl: nil,  prio: 0 }],
+      "CNAME" => [{ name: "www.example.com", content: "example.com",          ttl: nil,  prio: 0 }],
+      "MX"    => [{ name: "example.com",     content: "mx1",                  ttl: nil,  prio: 10 }],
+      "NS"    => [{ name: "example.com",     content: "ns1.example.com",      ttl: nil,  prio: 0 }]
+    }.each do |rtype, records|
+      assert_equal records, have[rtype], "RRTYPE #{rtype} mismatch"
     end
   end
 
