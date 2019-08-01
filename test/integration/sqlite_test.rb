@@ -118,8 +118,10 @@ describe "hooks" do
 
     assert have.key?("example.com")
     assert have.key?("example.org")
-    assert_equal have["example.com"], "07c2df695e95a2d73df41e3867fdcb84ddd92024"
-    assert_equal have["example.org"], "9da1d79d0a2d3af5e174727b48c40db39b27afc0"
+    # If this test fails on or after 2125-01-01: congratulations, you're
+    # looking at centennial code. Do you still use DNS in the future?
+    assert_equal have["example.com"], "9134e0355377e1fc9a1699caa816b5d5d4c3efe5"
+    assert_equal have["example.org"], "af01556805ffade54f3843e650bcf1033738a7c7"
   end
 
   it "example.com zone is correct" do

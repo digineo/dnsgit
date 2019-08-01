@@ -1,4 +1,5 @@
-soa minimumTTL: 600
+soa minimumTTL: "10m",
+    serial:     2124_12_31_00
 
 template "ns"
 

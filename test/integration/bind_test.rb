@@ -128,7 +128,7 @@ describe "hooks" do
         minimumTTL: (3600*12).to_s,
         retry:      "3H",
         expire:     "1W",
-        serial:     Time.now.strftime("%Y%m%d00"),
+        serial:     "2124123101",
       })
 
       EMPTY_RRTYPES.merge({
@@ -157,7 +157,7 @@ describe "hooks" do
         minimumTTL: "600",
         retry:      "3H",
         expire:     "1W",
-        serial:     Time.now.strftime("%Y%m%d00"),
+        serial:     "2124123101",
       })
 
       EMPTY_RRTYPES.merge({
