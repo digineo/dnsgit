@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "zonefile", "~> 2.1.0", git: "https://github.com/digineo/zonefile.git"
+gem "zonefile", "~> 2.1.1", git: "https://github.com/digineo/zonefile.git"
 
 group :sqlite do
   gem "sqlite3"

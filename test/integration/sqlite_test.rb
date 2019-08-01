@@ -172,39 +172,39 @@ describe Backend::SQLite do
     end
   end
 
-  # it "example.org zone is correct" do
-  #   Dir.chdir @work.join("pdns") do
-  #     zf = Zonefile.from_file "zones/example.org"
+  it "example.org zone is correct" do
+    have = fetch_records("example.org")
 
-  #     zf.soa.must_equal({
-  #       origin:     "@",
-  #       primary:    "ns1.example.com.",
-  #       email:      "webmaster.example.com.",
-  #       refresh:    "1D",
-  #       ttl:        "1H",
-  #       minimumTTL: "600",
-  #       retry:      "3H",
-  #       expire:     "1W",
-  #       serial:     Time.now.strftime("%Y%m%d00"),
-  #     })
+    assert_equal [{
+      name:     "example.org",
+      ttl:      3600,
+      prio:     0,
+      content:  [
+        "ns1.example.com",
+        "webmaster.example.com",
+        2124123101,
+        24 * 3600,      # refresh
+        3 * 3600,       # retry
+        7 * 24 * 3600,  # expire
+        600,            # min ttl
+      ].join(" "),
+    }], have.fetch("SOA")
 
-  #     EMPTY_RRTYPES.merge({
-  #       a:      [{ name: "a",       ttl: "600", class: "IN", host: "192.168.1.3" },
-  #                { name: "b",       ttl: nil,   class: "IN", host: "10.11.12.13" }],
-  #       a4:     [{ name: "@",       ttl: nil,   class: "IN", host: "2001:4860:4860::6666" },
-  #                { name: "b",       ttl: nil,   class: "IN", host: "2001:4860:4860::abcd" }],
-  #       cname:  [{ name: "foo",     ttl: "42",  class: "IN", host: "@" },
-  #                { name: "foo.bar", ttl: nil,   class: "IN", host: "@" },
-  #                { name: "c",       ttl: "60",  class: "IN", host: "b" },
-  #                { name: "c",       ttl: "60",  class: "IN", host: "b" }],
-  #       mx:     [{ name: "@",       ttl: nil,   class: "IN", host: "mx1", pri: 10 },
-  #                { name: "@",       ttl: nil,   class: "IN", host: "mx2", pri: 20 }],
-  #       ns:     [{ name: "@",       ttl: nil,   class: "IN", host: "ns1.example.com." }],
-  #       txt:    [{ name: "@",       ttl: "120", class: "IN", text: "a=b" }],
-  #     }).each do |rtype, rrs|
-  #       zf.records[rtype].must_equal rrs
-  #     end
-  #   end
-  # end
-
+    {
+      "A"     => [{ name: "a.example.org",       content: "192.168.1.3",          ttl: 600, prio: 0 },
+                  { name: "b.example.org",       content: "10.11.12.13",          ttl: nil, prio: 0 }],
+      "AAAA"  => [{ name: "example.org",         content: "2001:4860:4860::6666", ttl: nil, prio: 0 },
+                  { name: "b.example.org",       content: "2001:4860:4860::abcd", ttl: nil, prio: 0 }],
+      "CNAME" => [{ name: "foo.example.org",     content: "example.org",          ttl: 42,  prio: 0 },
+                  { name: "foo.bar.example.org", content: "example.org",          ttl: nil, prio: 0 },
+                  { name: "c.example.org",       content: "b",                    ttl: 60,  prio: 0 },
+                  { name: "c.example.org",       content: "b",                    ttl: 60,  prio: 0 }],
+      "MX"    => [{ name: "example.org",         content: "mx1",                  ttl: nil, prio: 10 },
+                  { name: "example.org",         content: "mx2",                  ttl: nil, prio: 20 }],
+      "NS"    => [{ name: "example.org",         content: "ns1.example.com",      ttl: nil, prio: 0 }],
+      "TXT"   => [{ name: "example.org",         content: "a=b",                  ttl: 120, prio: 0 }],
+    }.each do |rtype, records|
+      assert_equal records, have[rtype], "RRTYPE #{rtype} mismatch"
+    end
+  end
 end
