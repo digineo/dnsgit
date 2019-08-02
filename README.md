@@ -35,9 +35,14 @@ Depending on whether or not you have PowerDNS configured with
 commands:
 
 ```console
-# bundle install --without sqlite
-# bundle install --with sqlite
+# bundle install --without=sqlite
+# bundle install --with=sqlite
 ```
+
+(Please note that sqlite requires building a native Ruby extension. Therefore
+you need to have `libsqlite3-dev`, `ruby-dev` and a C compiler installed.)
+
+(Please also note that SQLite 3.24.0 or newer is recommended.)
 
 Finally, generate a sample configuration.
 

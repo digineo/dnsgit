@@ -11,6 +11,7 @@ group :test do
   gem "minitest"
 end
 
-group :development do
-  gem "rubocop", "~> 0.72.0", require: false
+local_gemfile = 'Gemfile.local'
+if File.exist?(local_gemfile)
+  eval(File.read(local_gemfile)) # rubocop:disable Lint/Eval
 end

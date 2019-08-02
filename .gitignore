@@ -4,3 +4,4 @@
 /tmp
 /vendor
 Gemfile.lock
+Gemfile.local
