@@ -67,11 +67,30 @@ module Backend
 
     private
 
-    UPSERT_DOMAIN_SQL = <<~SQL.freeze
-      insert into domains (name, type)
-        values (:name, 'MASTER')
-        on conflict (name) do nothing
-    SQL
+    UPSERT_DOMAIN_SQL = if SQLite3.libversion >= 3024000
+      # SQLite 3.24 introcuded upsert (with conflict resulotion)
+      <<~SQL.freeze
+        insert into domains (name, type)
+          values (:name, 'MASTER')
+          on conflict (name) do nothing
+      SQL
+    else
+      # try emulating upsert. this is not perfect: it assumes no significant
+      # alterations of the domains table, and performance might be sub-par.
+      <<~SQL.freeze
+        with existing as (select id from domains where name = :name)
+        insert or replace into domains (id, name, type, last_check, notified_serial, account, dnsgit_zone_hash)
+          values (
+            (select id from domains where (select id from existing)),
+            :name,
+            'MASTER',
+            (select last_check from domains where (select id from existing)),
+            (select notified_serial from domains where (select id from existing)),
+            (select account from domains where (select id from existing)),
+            (select dnsgit_zone_hash from domains where (select id from existing))
+          )
+      SQL
+    end
     private_constant :UPSERT_DOMAIN_SQL
 
     UPDATE_DOMAIN_CHECKSUM_SQL = <<~SQL.freeze
