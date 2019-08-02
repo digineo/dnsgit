@@ -1,4 +1,5 @@
--- https://github.com/PowerDNS/pdns/blob/rel/auth-4.2.x/modules/gsqlite3backend/schema.sqlite3.sql
+-- https://github.com/PowerDNS/pdns/blob/rel/auth-4.1.x/modules/gsqlite3backend/schema.sqlite3.sql
+-- should work with 4.2 as well (4.2 removes autoserials (records.change_date column))
 
 PRAGMA foreign_keys = 1;
 
@@ -23,6 +24,7 @@ CREATE TABLE records (
   content               VARCHAR(65535) DEFAULT NULL,
   ttl                   INTEGER DEFAULT NULL,
   prio                  INTEGER DEFAULT NULL,
+  change_date           INTEGER DEFAULT NULL,
   disabled              BOOLEAN DEFAULT 0,
   ordername             VARCHAR(255),
   auth                  BOOL DEFAULT 1,
