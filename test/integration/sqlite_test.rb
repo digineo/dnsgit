@@ -5,7 +5,7 @@ require "pathname"
 require "tmpdir"
 Bundler.require :sqlite
 
-describe Backend::SQLite do
+class Backend::TestSQLite < Minitest::Test
   def execute(cmd, *args)
     cmd = [cmd, *args].map(&:to_s)
     out = IO.popen(cmd, "r", err: [:child, :out], &:read)
@@ -85,11 +85,11 @@ describe Backend::SQLite do
     end
   end
 
-  before do
+  def setup
     prepare!
   end
 
-  after do
+  def teardown
     if failures.length > 0
       FileUtils.cp @db_path, "/tmp/" if @db_path.exist?
       puts @push_output
@@ -98,11 +98,11 @@ describe Backend::SQLite do
     @work.rmtree if @work.exist?
   end
 
-  it "creates DB file" do
+  def test_create_db_file
     assert @db_path.exist?
   end
 
-  it "executes hooks" do
+  def test_execute_hooks
     assert_includes @push_output, [
       "example.com has been updated",
       "example.org has been updated",
@@ -116,7 +116,7 @@ describe Backend::SQLite do
     ].join("\n")
   end
 
-  it "creates zones" do
+  def test_create_zones
     have = {}
     with_db do |db|
       db.execute("select name, dnsgit_zone_hash from domains") do |row|
@@ -157,7 +157,7 @@ describe Backend::SQLite do
     records
   end
 
-  it "example.com zone is correct" do
+  def test_example_com_zone
     have = fetch_records("example.com")
     assert_equal [{
       name:     "example.com",
@@ -186,7 +186,7 @@ describe Backend::SQLite do
     end
   end
 
-  it "example.org zone is correct" do
+  def test_example_org_zone
     have = fetch_records("example.org")
 
     assert_equal [{

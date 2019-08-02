@@ -4,7 +4,7 @@ require "test_helper"
 require "pathname"
 require "tmpdir"
 
-describe Backend::BIND do
+class Backend::TestBIND < Minitest::Test
   def execute(cmd, *args)
     cmd = [cmd, *args].map(&:to_s)
     out = IO.popen(cmd, "r", err: [:child, :out], &:read)
@@ -86,23 +86,23 @@ describe Backend::BIND do
     map[rtype] = []
   }
 
-  before do
+  def setup
     prepare!
   end
 
-  after do
+  def teardown
     @work.rmtree if @work.exist?
   end
 
-  it "creates files" do
+  def test_create_files
     Dir.chdir @work.join("pdns") do
-      _(File.exist? "zones/example.com").must_equal true
-      _(File.exist? "zones/example.org").must_equal true
+      assert File.exist?("zones/example.com")
+      assert File.exist?("zones/example.org")
     end
   end
 
-  it "executes hooks" do
-    @push_output.must_include [
+  def test_execute_hooks
+    assert_includes @push_output, [
       "example.com has been created",
       "example.org has been created",
       "Executing 'echo 1' ...",
@@ -115,11 +115,11 @@ describe Backend::BIND do
     ].join("\n")
   end
 
-  it "example.com zone is correct" do
+  def test_example_com_zone
     Dir.chdir @work.join("pdns") do
       zf = Zonefile.from_file "zones/example.com"
 
-      zf.soa.must_equal({
+      assert_equal({
         origin:     "@",
         primary:    "ns1.example.com.",
         email:      "webmaster.example.com.",
@@ -129,7 +129,7 @@ describe Backend::BIND do
         retry:      3 * 3600,
         expire:     7 * 24 * 3600,
         serial:     "2124123101",
-      })
+      }, zf.soa)
 
       EMPTY_RRTYPES.merge({
         a:      [{ name: "@",   ttl: nil,  class: "IN", host: "192.168.1.1" },
@@ -139,16 +139,16 @@ describe Backend::BIND do
         mx:     [{ name: "@",   ttl: nil,  class: "IN", host: "mx1", pri: 10 }],
         ns:     [{ name: "@",   ttl: nil,  class: "IN", host: "ns1.example.com." }],
       }).each do |rtype, rrs|
-        zf.records[rtype].must_equal rrs
+        assert_equal rrs, zf.records[rtype]
       end
     end
   end
 
-  it "example.org zone is correct" do
+  def test_example_org_zone
     Dir.chdir @work.join("pdns") do
       zf = Zonefile.from_file "zones/example.org"
 
-      zf.soa.must_equal({
+      assert_equal({
         origin:     "@",
         primary:    "ns1.example.com.",
         email:      "webmaster.example.com.",
@@ -158,7 +158,7 @@ describe Backend::BIND do
         retry:      3 * 3600,
         expire:     7 * 24 * 3600,
         serial:     "2124123101",
-      })
+      }, zf.soa)
 
       EMPTY_RRTYPES.merge({
         a:      [{ name: "a",       ttl: 600, class: "IN", host: "192.168.1.3" },
@@ -174,7 +174,7 @@ describe Backend::BIND do
         ns:     [{ name: "@",       ttl: nil, class: "IN", host: "ns1.example.com." }],
         txt:    [{ name: "@",       ttl: 120, class: "IN", text: "a=b" }],
       }).each do |rtype, rrs|
-        zf.records[rtype].must_equal rrs
+        assert_equal rrs, zf.records[rtype]
       end
     end
   end
