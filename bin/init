@@ -18,6 +18,8 @@ cp    $basedir/lib/example/.gitignore ./
 # Initialize repository
 git init --quiet
 git add -A
+git config user.name  || git config user.name  "dnsgit"
+git config user.email || git config user.email "nobody@example.com"
 git commit -m "Sample configuration" --quiet
 
 # Symlink hooks
