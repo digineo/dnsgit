@@ -70,6 +70,11 @@ class Backend::TestSQLite < Minitest::Test
       }
       f.write config.to_yaml
     end
+
+    commit!
+  end
+
+  def commit!
     Dir.chdir @on_client do
       execute "git", "add", "-A"
       execute "git", "commit", "-m", "hook integration test"
@@ -218,5 +223,33 @@ class Backend::TestSQLite < Minitest::Test
     }.each do |rtype, records|
       assert_equal records, have[rtype], "RRTYPE #{rtype} mismatch"
     end
+  end
+
+  def test_update_zone_affects_only_updated_zone
+    hashes = {}
+    with_db do |db|
+      db.execute("select name, dnsgit_zone_hash from domains") do |(domain, checksum)|
+        hashes[domain] = { old: checksum, new: nil }
+      end
+    end
+
+    @on_client.join("zones/example.com.rb").open("a") do |z|
+      z.puts "", "txt 'foo'"
+    end
+    commit!
+
+    with_db do |db|
+      db.execute("select name, dnsgit_zone_hash from domains") do |(domain, checksum)|
+        hashes[domain][:new] = checksum
+      end
+    end
+
+    zone = hashes.fetch("example.org")
+    refute_includes @push_output, "example.org has been updated"
+    assert_equal zone[:old], zone[:new], "example.org zone changed (it ought not to)"
+
+    zone = hashes.fetch("example.com")
+    assert_includes @push_output, "example.com has been updated"
+    refute_equal zone[:old], zone[:new], "example.com zone did not change (it ought to)"
   end
 end
