@@ -38,6 +38,11 @@ class IntegrationTest < Minitest::Test
       execute "git", "clone", "on-server/data", "./on-client"
     end
 
+    Dir.chdir @on_client do
+      execute "git", "config", "user.name", "dnsgit"
+      execute "git", "config", "user.email", "nobody@example.com"
+    end
+
     # prepare tmpwd/on-client
     @on_client.join("templates").each_child(&:delete)
     @on_client.join("zones").each_child(&:delete)
