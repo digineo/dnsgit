@@ -104,8 +104,7 @@ module Backend
         where records.type = 'SOA'
       SQL
 
-      execute(q) do |row|
-        domain, checksum, rrdata = row
+      execute(q) do |(domain, checksum, rrdata)|
         next unless zones.key?(domain)
         _, _, serial, _, _, _, _ = rrdata.split(/\s+/)
 
@@ -123,8 +122,7 @@ module Backend
 
       D { "fetch all ids, remember extranuous records" }
       extra = []
-      execute "select name, id from domains" do |row|
-        domain, id = row
+      execute "select name, id from domains" do |(domain, id)|
         if zones.key?(domain)
           zones[domain].id = id
         else
@@ -191,12 +189,12 @@ module Backend
     end
 
     def execute_prepared(name, *args)
-      Dsql { { prep_stmt: name, args: args } }
+      debug_sql { { prep_stmt: name, args: args } }
       @prepared_statements.fetch(name).execute(*args)
     end
 
     def execute(query, *args, &block)
-      Dsql { { query: query.gsub("\n", " ").squeeze(" "), args: args } }
+      debug_sql { { query: query.gsub("\n", " ").squeeze(" "), args: args } }
       db.execute(query, *args, &block)
     end
 
@@ -215,8 +213,8 @@ module Backend
       have = Set.new
       want = Set.new %w[ domains records supermasters comments domainmetadata cryptokeys tsigkeys ]
 
-      db.execute("select name from sqlite_master where type='table'") do |rows|
-        have << row[0]
+      db.execute("select name from sqlite_master where type='table'") do |(name)|
+        have << name
       end
 
       diff = want - have
@@ -250,9 +248,8 @@ module Backend
       end
     end
 
-    def Dsql
-      return unless @debug
-      $stderr.printf "[SQL] %p\n", yield
+    def debug_sql
+      D { format("[SQL] %p", yield) }
     end
   end
 end

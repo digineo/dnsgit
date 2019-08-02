@@ -119,8 +119,7 @@ class Backend::TestSQLite < Minitest::Test
   def test_create_zones
     have = {}
     with_db do |db|
-      db.execute("select name, dnsgit_zone_hash from domains") do |row|
-        name, checksum = row
+      db.execute("select name, dnsgit_zone_hash from domains") do |(name, checksum)|
         have[name] = checksum
       end
     end
@@ -148,8 +147,7 @@ class Backend::TestSQLite < Minitest::Test
         where records.disabled = 0
           and domains.name = '#{domain}'
       SQL
-      db.execute(q) do |row|
-        name, type, content, ttl, prio = row
+      db.execute(q) do |(name, type, content, ttl, prio)|
         records[type] << { name: name, content: content, ttl: ttl, prio: prio }
       end
     end
