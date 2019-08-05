@@ -103,7 +103,7 @@ class Backend::TestSQLite < IntegrationTest
                   { name: "a.example.com",   content: "192.168.1.2",          ttl: 3600, prio: 0 }],
       "AAAA"  => [{ name: "example.com",     content: "2001:4860:4860::8888", ttl: nil,  prio: 0 }],
       "CNAME" => [{ name: "www.example.com", content: "example.com",          ttl: nil,  prio: 0 }],
-      "MX"    => [{ name: "example.com",     content: "mx1",                  ttl: nil,  prio: 10 }],
+      "MX"    => [{ name: "example.com",     content: "mx1.example.com",      ttl: nil,  prio: 10 }],
       "NS"    => [{ name: "example.com",     content: "ns1.example.com",      ttl: nil,  prio: 0 }]
     }.each do |rtype, records|
       assert_equal records, have[rtype], "RRTYPE #{rtype} mismatch"
@@ -135,10 +135,10 @@ class Backend::TestSQLite < IntegrationTest
                   { name: "b.example.org",       content: "2001:4860:4860::abcd", ttl: nil, prio: 0 }],
       "CNAME" => [{ name: "foo.example.org",     content: "example.org",          ttl: 42,  prio: 0 },
                   { name: "foo.bar.example.org", content: "example.org",          ttl: nil, prio: 0 },
-                  { name: "c.example.org",       content: "b",                    ttl: 60,  prio: 0 },
-                  { name: "c.example.org",       content: "b",                    ttl: 60,  prio: 0 }],
-      "MX"    => [{ name: "example.org",         content: "mx1",                  ttl: nil, prio: 10 },
-                  { name: "example.org",         content: "mx2",                  ttl: nil, prio: 20 }],
+                  { name: "c.example.org",       content: "b.example.org",        ttl: 60,  prio: 0 },
+                  { name: "c.example.org",       content: "b.example.org",        ttl: 60,  prio: 0 }],
+      "MX"    => [{ name: "example.org",         content: "mx1.example.org",      ttl: nil, prio: 10 },
+                  { name: "example.org",         content: "mx2.example.org",      ttl: nil, prio: 20 }],
       "NS"    => [{ name: "example.org",         content: "ns1.example.com",      ttl: nil, prio: 0 }],
       "TXT"   => [{ name: "example.org",         content: "a=b",                  ttl: 120, prio: 0 }],
     }.each do |rtype, records|

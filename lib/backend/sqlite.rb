@@ -176,12 +176,19 @@ module Backend
           [0, rr.data]
         end
 
-        name = rr.name == "@" ? origin : "#{rr.name}.#{origin}"
-        content = content.split(/\s+/).map{|e| e.gsub("@", origin).chomp(".") }.join(" ")
+        if %w[MX CNAME].include?(rr.type) && !content.chomp!(".")
+          unless content.gsub!("@", origin)
+            content = "#{content}.#{origin}"
+          end
+        else
+          content = content.split(/\s+/)
+            .map{|e| e.gsub("@", origin).chomp(".") }
+            .join(" ")
+        end
 
         execute_prepared(:insert_record, {
           "domain_id" => domain_id,
-          "name"      => name,
+          "name"      => rr.name == "@" ? origin : "#{rr.name}.#{origin}",
           "type"      => rr.type,
           "content"   => content,
           "ttl"       => rr.ttl || default_ttl,
