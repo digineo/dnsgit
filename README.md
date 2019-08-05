@@ -42,8 +42,6 @@ commands:
 (Please note that sqlite requires building a native Ruby extension. Therefore
 you need to have `libsqlite3-dev`, `ruby-dev` and a C compiler installed.)
 
-(Please also note that SQLite 3.24.0 or newer is recommended.)
-
 Finally, generate a sample configuration.
 
 ```console

@@ -57,41 +57,20 @@ module Backend
         }
       end
 
-      db.transaction do
-        D { :annotate_state }
-        annotate_state(zones)
-        D { :update_database }
-        update_database(zones)
-      end
+      D { :annotate_state }
+      annotate_state(zones)
+
+      D { :update_database }
+      update_database(zones)
     end
 
     private
 
-    UPSERT_DOMAIN_SQL = if SQLite3.libversion >= 3024000
-      # SQLite 3.24 introcuded upsert (with conflict resulotion)
-      <<~SQL.freeze
-        insert into domains (name, type)
-          values (:name, 'MASTER')
-          on conflict (name) do nothing
-      SQL
-    else
-      # try emulating upsert. this is not perfect: it assumes no significant
-      # alterations of the domains table, and performance might be sub-par.
-      <<~SQL.freeze
-        with existing as (select id from domains where name = :name)
-        insert or replace into domains (id, name, type, last_check, notified_serial, account, dnsgit_zone_hash)
-          values (
-            (select id from domains where (select id from existing)),
-            :name,
-            'MASTER',
-            (select last_check from domains where (select id from existing)),
-            (select notified_serial from domains where (select id from existing)),
-            (select account from domains where (select id from existing)),
-            (select dnsgit_zone_hash from domains where (select id from existing))
-          )
-      SQL
-    end
-    private_constant :UPSERT_DOMAIN_SQL
+    INSERT_DOMAIN_SQL = <<~SQL.freeze
+      insert into domains (name, type)
+        values (:name, 'MASTER')
+    SQL
+    private_constant :INSERT_DOMAIN_SQL
 
     UPDATE_DOMAIN_CHECKSUM_SQL = <<~SQL.freeze
       update domains
@@ -115,7 +94,8 @@ module Backend
     # `zones` and overrides the value of a domain's zonefile.
     def annotate_state(zones)
       q = <<~SQL.freeze
-        select  domains.name
+        select  domains.id
+              , domains.name
               , domains.dnsgit_zone_hash
               , records.content
         from domains
@@ -123,56 +103,68 @@ module Backend
         where records.type = 'SOA'
       SQL
 
-      execute(q) do |(domain, checksum, rrdata)|
+      execute(q) do |row|
+        id, domain, checksum, rrdata = row
         next unless zones.key?(domain)
         _, _, serial, _, _, _, _ = rrdata.split(/\s+/)
 
-        D { "need_update(#{domain}) = #{zones[domain].checksum != checksum}" }
+        zones[domain].id          = id
         zones[domain].serial      = serial
         zones[domain].need_update = zones[domain].checksum != checksum
+
+        D { "domain #{domain} needs update" } if zones[domain].need_update
       end
     end
 
     def update_database(zones)
-      # insert or update domain names
-      zones.keys.each do |domain|
-        execute_prepared(:upsert_domain, "name" => domain)
-      end
-
-      D { "fetch all ids, remember extranuous records" }
-      extra = []
-      execute "select name, id from domains" do |(domain, id)|
-        if zones.key?(domain)
-          zones[domain].id = id
-        else
-          extra << id
+      D { "insert new domains" }
+      db.transaction do
+        zones.each do |domain, work|
+          next if work.id
+          execute_prepared(:insert_domain, "name" => domain)
+          work.id = db.last_insert_row_id
         end
       end
 
-      if extra.length > 0
-        D { "remove extranuous domains" }
-        execute "delete from domains where id in (#{extra.join(', ')})"
+      D { "find old domains to delete" }
+      extra = { domains: [], ids: [] }
+      execute "select name, id from domains" do |(domain, id)|
+        next if zones.key?(domain)
+        extra[:domains] << domain
+        extra[:ids]     << id
       end
 
-      D { "delete all records where update is needed" }
+      if extra[:ids].length == 0
+        D { "no old domains to delete" }
+      else
+        D { "delete old domains: #{extra[:domains].join(', ')}" }
+        execute "delete from domains where id in (#{extra[:ids].join(', ')})"
+      end
+
       zones.each do |domain, work|
         next unless work.need_update
 
-        execute_prepared(:delete_record, {
-          "domain_id" => work.id,
-        })
-
-        work.bump_serial!
-        work.resource_records.each do |name, rrs|
-          rrs = [rrs] if name === :soa
-          upsert_domain_records(work.id, rrs, work.zonefile.origin, work.zonefile.ttl)
+        if work.id.nil?
+          D { "missing ID for #{domain}" }
+          next
         end
 
-        execute_prepared(:domain_checksum, {
-          "id"        => work.id,
-          "checksum"  => work.checksum,
-        })
-        mark_changed(domain, :updated)
+        db.transaction do
+          D { "rebuild records for #{domain}" }
+          execute_prepared(:delete_record, "domain_id" => work.id)
+
+          work.bump_serial!
+          work.resource_records.each do |name, rrs|
+            rrs = [rrs] if name === :soa
+            upsert_domain_records(work.id, rrs, work.zonefile.origin, work.zonefile.ttl)
+          end
+
+          execute_prepared(:domain_checksum, {
+            "id"        => work.id,
+            "checksum"  => work.checksum,
+          })
+          mark_changed(domain, :updated)
+        end
       end
     end
 
@@ -200,7 +192,7 @@ module Backend
 
     def prepare_statements!
       @prepared_statements = {
-        upsert_domain:    db.prepare(UPSERT_DOMAIN_SQL),
+        insert_domain:    db.prepare(INSERT_DOMAIN_SQL),
         domain_checksum:  db.prepare(UPDATE_DOMAIN_CHECKSUM_SQL),
         delete_record:    db.prepare(DELETE_RECORD_SQL),
         insert_record:    db.prepare(INSERT_RECORD_SQL),
@@ -208,12 +200,12 @@ module Backend
     end
 
     def execute_prepared(name, *args)
-      debug_sql { { prep_stmt: name, args: args } }
+      D { debug_sql(prep_stmt: name, args: args) }
       @prepared_statements.fetch(name).execute(*args)
     end
 
     def execute(query, *args, &block)
-      debug_sql { { query: query.gsub("\n", " ").squeeze(" "), args: args } }
+      D { debug_sql(query: query.gsub(/\s*\n\s*/, " ").strip, args: args) }
       db.execute(query, *args, &block)
     end
 
@@ -267,8 +259,11 @@ module Backend
       end
     end
 
-    def debug_sql
-      D { format("[SQL] %p", yield) }
+    def debug_sql(args: nil, **rest)
+      if args && args.size > 0
+        rest = rest.merge(args: args)
+      end
+      format "[SQL] %p", rest
     end
   end
 end
