@@ -22,12 +22,25 @@ module Backend
     end
 
     Work = Struct.new(:zonefile, :id, :need_update) do
+      include ::DebugLog::Logger
+
       def checksum
-        @checksum ||= Digest::SHA1.hexdigest(zonefile.output)
+        @checksum ||= begin
+          digest = Digest::SHA1.new
+          each_rr do |rr|
+            logger.debug { format "<rr> %{name}\t%{ttl}\t%{class}\t%{type}\t%{data}", rr.to_h }
+            digest << rr.name.to_s << rr.ttl.to_s << rr.type.to_s << rr.data
+          end
+
+          digest.hexdigest.tap {|hd| logger.debug hd }
+        end
       end
 
-      def resource_records
-        zonefile.resource_records
+      def each_rr
+        zonefile.resource_records(powerdns_sql: true).each do |typ, rrs|
+          rrs = [rrs] if typ == :soa
+          rrs.each {|rr| yield rr }
+        end
       end
 
       def bump_serial!
@@ -103,16 +116,17 @@ module Backend
         where records.type = 'SOA'
       SQL
 
-      execute(q) do |row|
-        id, domain, checksum, rrdata = row
+      execute(q) do |(id, domain, checksum, rrdata)|
         next unless zones.key?(domain)
         _, _, serial, _, _, _, _ = rrdata.split(/\s+/)
+
+        logger.warn { zones[domain].zonefile.output }
 
         zones[domain].id          = id
         zones[domain].serial      = serial
         zones[domain].need_update = zones[domain].checksum != checksum
 
-        logger.debug { "domain #{domain} needs update" } if zones[domain].need_update
+        logger.info { "domain #{domain} needs update" } if zones[domain].need_update
       end
     end
 
@@ -137,7 +151,7 @@ module Backend
       if extra[:ids].length == 0
         logger.debug { "no old domains to delete" }
       else
-        logger.debug { "delete old domains: #{extra[:domains].join(', ')}" }
+        logger.info { "delete old domains: #{extra[:domains].join(', ')}" }
         execute "delete from domains where id in (#{extra[:ids].join(', ')})"
       end
 
@@ -145,18 +159,17 @@ module Backend
         next unless work.need_update
 
         if work.id.nil?
-          logger.debug { "missing ID for #{domain}" }
+          logger.error { "missing ID for #{domain}" }
           next
         end
 
         db.transaction do
-          logger.debug { "rebuild records for #{domain}" }
+          logger.info { "rebuild records for #{domain}" }
           execute_prepared(:delete_record, "domain_id" => work.id)
 
           work.bump_serial!
-          work.resource_records.each do |name, rrs|
-            rrs = [rrs] if name === :soa
-            upsert_domain_records(work.id, rrs, work.zonefile.origin, work.zonefile.ttl)
+          work.each_rr do |rr|
+            upsert_domain_record(work.id, rr, work.zonefile.ttl)
           end
 
           execute_prepared(:domain_checksum, {
@@ -168,33 +181,21 @@ module Backend
       end
     end
 
-    def upsert_domain_records(domain_id, records, origin, default_ttl)
-      records.each do |rr|
-        prio, content = if %w[MX SRV].include?(rr.type)
-          rr.data.split(/\s+/, 2)
-        else
-          [0, rr.data]
-        end
-
-        if %w[MX CNAME].include?(rr.type) && !content.chomp!(".")
-          unless content.gsub!("@", origin)
-            content = "#{content}.#{origin}"
-          end
-        else
-          content = content.split(/\s+/)
-            .map{|e| e.gsub("@", origin).chomp(".") }
-            .join(" ")
-        end
-
-        execute_prepared(:insert_record, {
-          "domain_id" => domain_id,
-          "name"      => rr.name == "@" ? origin : "#{rr.name}.#{origin}",
-          "type"      => rr.type,
-          "content"   => content,
-          "ttl"       => rr.ttl || default_ttl,
-          "prio"      => prio,
-        })
+    def upsert_domain_record(domain_id, rr, default_ttl)
+      prio, content = if %w[MX SRV].include?(rr.type)
+        rr.data.split(/\s+/, 2)
+      else
+        [0, rr.data]
       end
+
+      execute_prepared(:insert_record, {
+        "domain_id" => domain_id,
+        "name"      => rr.name,
+        "type"      => rr.type,
+        "content"   => content,
+        "ttl"       => rr.ttl || default_ttl,
+        "prio"      => prio,
+      })
     end
 
     def prepare_statements!

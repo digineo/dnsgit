@@ -9,10 +9,10 @@ class DebugLog
   ENABLED_FOR = Set.new(ENV.fetch("DNSGIT_DEBUG", "").downcase.split(",")).freeze
 
   COLOR_CODES = {
-    debug:  34, # blue
-    info:   36, # cyan
-    warn:   33, # yellow
-    error:  30, # red
+    DEBUG:  34,     # blue
+    INFO:   [36,1], # bright cyan
+    WARN:   [33,1], # bright yellow
+    ERROR:  30,     # red
   }.freeze
 
   attr_reader :prefix, :enabled
@@ -25,19 +25,19 @@ class DebugLog
   end
 
   def debug(msg=nil, &block)
-    log :debug, msg, &block
+    log :DEBUG, msg, &block
   end
 
   def info(msg=nil, &block)
-    log :info, msg, &block
+    log :INFO, msg, &block
   end
 
-  def warn(nsg=nil, &block)
-    log :warn, msg, &block
+  def warn(msg=nil, &block)
+    log :WARN, msg, &block
   end
 
   def error(msg=nil, &block)
-    log :error, msg, &block
+    log :ERROR, msg, &block
   end
 
   private
@@ -46,7 +46,7 @@ class DebugLog
     return unless enabled
 
     msg ||= yield if block_given?
-    c = COLOR_CODES.fetch(level, 0)
-    $stderr.printf "[%s] \e[%dm%5s\e[0m %s\n", prefix, c, level, msg.to_s
+    c = [*COLOR_CODES.fetch(level, 0)].join(";")
+    $stderr.printf "\e[%sm%-5s\e[0m \e[%dm%s\e[0m\t%s\n", c, level, 35, prefix, msg.to_s
   end
 end

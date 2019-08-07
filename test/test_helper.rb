@@ -81,8 +81,9 @@ class IntegrationTest < Minitest::Test
       execute "git", "commit", "-m", "hook integration test"
       @raw_output = execute("git", "push")
       @push_output = @raw_output
-        .gsub(/^remote:\s?(.*?)\s*$/, '\1')
-        .gsub(/\e\[\d+m/, '')
+        .gsub(/^remote:\s?(.*?)\s*$/, '\1') # strip git prefix
+        .gsub(/\e\[\d+(?:;\d)*m/, '')       # strip color codes
+        .gsub(/^(?:DEBUG|INFO|WARN|ERROR).*$\n/, '') # strip DebugLog
     end
   end
 end
