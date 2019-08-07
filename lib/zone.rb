@@ -2,12 +2,12 @@ class Zone
   include ::DebugLog::Logger
 
   class Nested < Struct.new(:zone, :host)
-    def cname(name, *args)
-      zone.cname(name, host, *args)
+    def cname(name, ttl=nil)
+      zone.cname(*[name, host, ttl].compact)
     end
 
-    def txt(text, *args)
-      zone.txt(host, text, *args)
+    def txt(text, ttl=nil)
+      zone.txt(*[host, text, ttl].compact)
     end
   end
 
@@ -55,7 +55,7 @@ class Zone
       # name, ipv4 and ipv6
       name, ipv4, ipv6 = args.shift(3)
       a_record :a, name, ipv4, *args, &block
-      a_record :a4, name, ipv6, *args, &block
+      a_record :a4, name, ipv6, *args
     else
       a_record :a, *args, &block
     end

@@ -27,6 +27,7 @@ class ZoneGenerator
   # Performs deployment and executes callbacks
   def deploy
     @backend.deploy
+    @backend.close if @backend.respond_to?(:close)
 
     env = {
       "ZONES_CHANGED" => @backend.zones_changed.join(","),

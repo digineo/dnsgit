@@ -3,16 +3,15 @@ soa minimumTTL: "10m",
 
 template "ns"
 
-a "a", "192.168.1.3", 600
+a "a", "192.168.1.3", 600 do
+  cname "foo", 42   # foo 42 IN CNAME a
+  cname "foo.bar"   # foo.bar IN CNAME a
+  txt "a=b", 120    # @ 120 IN TXT "a=b"
+end
+
 aaaa "2001:4860:4860::6666"
 mx "mx1", 10
 mx "mx2", 20
-
-a do
-  cname "foo", 42
-  cname "foo.bar"
-  txt "a=b", 120
-end
 
 a "b", "10.11.12.13", "2001:4860:4860::abcd" do
   cname "c", 60

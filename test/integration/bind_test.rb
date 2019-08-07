@@ -98,16 +98,15 @@ class Backend::TestBIND < IntegrationTest
                  { name: "b",       ttl: nil, class: "IN", host: "10.11.12.13" }],
         a4:     [{ name: "@",       ttl: nil, class: "IN", host: "2001:4860:4860::6666" },
                  { name: "b",       ttl: nil, class: "IN", host: "2001:4860:4860::abcd" }],
-        cname:  [{ name: "foo",     ttl: 42,  class: "IN", host: "@" },
-                 { name: "foo.bar", ttl: nil, class: "IN", host: "@" },
-                 { name: "c",       ttl: 60,  class: "IN", host: "b" },
+        cname:  [{ name: "foo",     ttl: 42,  class: "IN", host: "a" },
+                 { name: "foo.bar", ttl: nil, class: "IN", host: "a" },
                  { name: "c",       ttl: 60,  class: "IN", host: "b" }],
         mx:     [{ name: "@",       ttl: nil, class: "IN", host: "mx1", pri: 10 },
                  { name: "@",       ttl: nil, class: "IN", host: "mx2", pri: 20 }],
         ns:     [{ name: "@",       ttl: nil, class: "IN", host: "ns1.example.com." }],
-        txt:    [{ name: "@",       ttl: 120, class: "IN", text: "a=b" }],
+        txt:    [{ name: "a",       ttl: 120, class: "IN", text: "a=b" }],
       }).each do |rtype, rrs|
-        assert_equal rrs, zf.records[rtype]
+        assert_equal rrs, zf.records[rtype], "RR type #{rtype} mismatch"
       end
     end
   end

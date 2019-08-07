@@ -54,8 +54,8 @@ class Backend::TestSQLite < IntegrationTest
     assert have.key?("example.org")
     # If this test fails on or after 2125-01-01: congratulations, you're
     # looking at centennial code. Do you still use DNS in the future?
-    assert_equal have["example.com"], "e7dd4dcfdcf0a320d0297d388e8e00d75b918038"
-    assert_equal have["example.org"], "4ec2a3af6beb3eb11ebad8ba88816f1c1a636058"
+    assert_equal "fdaa632ef880afde15d677a6e9cf6ed391b9593e", have["example.com"]
+    assert_equal "fc9982b93739c4ff3b45becb56b37c220422e344", have["example.org"]
   end
 
   def fetch_records(domain)
@@ -95,8 +95,8 @@ class Backend::TestSQLite < IntegrationTest
         3 * 3600,       # retry
         7 * 24 * 3600,  # expire
         12 * 3600,      # min ttl
-      ].join(" "),
-    }], have.fetch("SOA")
+      ].join("\t"),
+    }], have.fetch("SOA"), "RRTYPE SOA mismatch"
 
     {
       "A"     => [{ name: "example.com",     content: "192.168.1.1",          ttl: nil,  prio: 0 },
@@ -125,22 +125,21 @@ class Backend::TestSQLite < IntegrationTest
         3 * 3600,       # retry
         7 * 24 * 3600,  # expire
         600,            # min ttl
-      ].join(" "),
-    }], have.fetch("SOA")
+      ].join("\t"),
+    }], have.fetch("SOA"), "RRTYPE SOA mismatch"
 
     {
       "A"     => [{ name: "a.example.org",       content: "192.168.1.3",          ttl: 600, prio: 0 },
                   { name: "b.example.org",       content: "10.11.12.13",          ttl: nil, prio: 0 }],
       "AAAA"  => [{ name: "example.org",         content: "2001:4860:4860::6666", ttl: nil, prio: 0 },
                   { name: "b.example.org",       content: "2001:4860:4860::abcd", ttl: nil, prio: 0 }],
-      "CNAME" => [{ name: "foo.example.org",     content: "example.org",          ttl: 42,  prio: 0 },
-                  { name: "foo.bar.example.org", content: "example.org",          ttl: nil, prio: 0 },
-                  { name: "c.example.org",       content: "b.example.org",        ttl: 60,  prio: 0 },
+      "CNAME" => [{ name: "foo.example.org",     content: "a.example.org",        ttl: 42,  prio: 0 },
+                  { name: "foo.bar.example.org", content: "a.example.org",        ttl: nil, prio: 0 },
                   { name: "c.example.org",       content: "b.example.org",        ttl: 60,  prio: 0 }],
       "MX"    => [{ name: "example.org",         content: "mx1.example.org",      ttl: nil, prio: 10 },
                   { name: "example.org",         content: "mx2.example.org",      ttl: nil, prio: 20 }],
       "NS"    => [{ name: "example.org",         content: "ns1.example.com",      ttl: nil, prio: 0 }],
-      "TXT"   => [{ name: "example.org",         content: "a=b",                  ttl: 120, prio: 0 }],
+      "TXT"   => [{ name: "a.example.org",       content: "a=b",                  ttl: 120, prio: 0 }],
     }.each do |rtype, records|
       assert_equal records, have[rtype], "RRTYPE #{rtype} mismatch"
     end
