@@ -47,7 +47,7 @@ module Backend
 
       src_zones_files.each do |file|
         domain   = file.basename.sub_ext("").to_s
-        D { "build zonefile for #{domain}" }
+        logger.debug { "build zonefile for #{domain}" }
         zonefile = build_zone_file(file, domain)
 
         zones[domain] = Work.new(zonefile).tap {|work|
@@ -57,10 +57,10 @@ module Backend
         }
       end
 
-      D { :annotate_state }
+      logger.debug { :annotate_state }
       annotate_state(zones)
 
-      D { :update_database }
+      logger.debug { :update_database }
       update_database(zones)
     end
 
@@ -112,12 +112,12 @@ module Backend
         zones[domain].serial      = serial
         zones[domain].need_update = zones[domain].checksum != checksum
 
-        D { "domain #{domain} needs update" } if zones[domain].need_update
+        logger.debug { "domain #{domain} needs update" } if zones[domain].need_update
       end
     end
 
     def update_database(zones)
-      D { "insert new domains" }
+      logger.debug { "insert new domains" }
       db.transaction do
         zones.each do |domain, work|
           next if work.id
@@ -126,7 +126,7 @@ module Backend
         end
       end
 
-      D { "find old domains to delete" }
+      logger.debug { "find old domains to delete" }
       extra = { domains: [], ids: [] }
       execute "select name, id from domains" do |(domain, id)|
         next if zones.key?(domain)
@@ -135,9 +135,9 @@ module Backend
       end
 
       if extra[:ids].length == 0
-        D { "no old domains to delete" }
+        logger.debug { "no old domains to delete" }
       else
-        D { "delete old domains: #{extra[:domains].join(', ')}" }
+        logger.debug { "delete old domains: #{extra[:domains].join(', ')}" }
         execute "delete from domains where id in (#{extra[:ids].join(', ')})"
       end
 
@@ -145,12 +145,12 @@ module Backend
         next unless work.need_update
 
         if work.id.nil?
-          D { "missing ID for #{domain}" }
+          logger.debug { "missing ID for #{domain}" }
           next
         end
 
         db.transaction do
-          D { "rebuild records for #{domain}" }
+          logger.debug { "rebuild records for #{domain}" }
           execute_prepared(:delete_record, "domain_id" => work.id)
 
           work.bump_serial!
@@ -207,12 +207,12 @@ module Backend
     end
 
     def execute_prepared(name, *args)
-      D { debug_sql(prep_stmt: name, args: args) }
+      logger.debug { debug_sql(prep_stmt: name, args: args) }
       @prepared_statements.fetch(name).execute(*args)
     end
 
     def execute(query, *args, &block)
-      D { debug_sql(query: query.gsub(/\s*\n\s*/, " ").strip, args: args) }
+      logger.debug { debug_sql(query: query.gsub(/\s*\n\s*/, " ").strip, args: args) }
       db.execute(query, *args, &block)
     end
 
@@ -270,7 +270,7 @@ module Backend
       if args && args.size > 0
         rest = rest.merge(args: args)
       end
-      format "[SQL] %p", rest
+      format "<SQL> %p", rest
     end
   end
 end

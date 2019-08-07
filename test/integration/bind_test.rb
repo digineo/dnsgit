@@ -23,7 +23,8 @@ class Backend::TestBIND < IntegrationTest
   end
 
   def teardown
-    @work.rmtree if @work.exist?
+    puts @raw_output if failures.length > 0
+    @work.rmtree     if @work.exist?
   end
 
   def test_create_files

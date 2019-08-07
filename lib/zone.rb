@@ -1,4 +1,6 @@
 class Zone
+  include ::DebugLog::Logger
+
   class Nested < Struct.new(:zone, :host)
     def cname(name, *args)
       zone.cname(name, host, *args)
@@ -27,6 +29,7 @@ class Zone
   def initialize(domain, template_dir, soa={})
     @domain   = domain
     @zonefile = Zonefile.new("", "output/#{domain}", domain)
+    logger.debug { format "<init> soa: %p", soa }
     @zonefile.soa.merge! soa
     @template_dir = template_dir
   end
@@ -40,6 +43,7 @@ class Zone
     if (invalid_keys = options.keys - SOA_FIELDS).any?
       raise ArgumentError, "invalid options: #{invalid_keys.inspect}"
     end
+    logger.debug { format "<soa> %p", options }
     @zonefile.soa.merge! options
   end
 
@@ -183,7 +187,14 @@ class Zone
   end
 
   def push(type, name, ttl, options={})
-    @zonefile.send(type) << {class: 'IN', name: name, ttl: ttl}.merge(options)
+    rrdata = {
+      class:  "IN",
+      name:   name,
+      ttl:    ttl,
+    }.merge(options)
+
+    logger.debug { format "<push>  %s  %p", type, rrdata }
+    @zonefile.send(type) << rrdata
   end
 
   # extracts the last argument if it is a Hash

@@ -79,7 +79,8 @@ class IntegrationTest < Minitest::Test
     Dir.chdir @on_client do
       execute "git", "add", "-A"
       execute "git", "commit", "-m", "hook integration test"
-      @push_output = execute("git", "push")
+      @raw_output = execute("git", "push")
+      @push_output = @raw_output
         .gsub(/^remote:\s?(.*?)\s*$/, '\1')
         .gsub(/\e\[\d+m/, '')
     end
