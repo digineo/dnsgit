@@ -140,7 +140,7 @@ describe Zone do
   describe "ptr record" do
     it "should create ptr record" do
       subject.ptr 127, "foobar.org"
-      subject.zonefile.ptr.must_equal [{class: "IN", name: 127, ttl: nil, host: "foobar.org."}]
+      subject.zonefile.ptr.must_equal [{class: "IN", name: "127", ttl: nil, host: "foobar.org."}]
     end
   end
 

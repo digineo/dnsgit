@@ -30,11 +30,13 @@ class Backend::TestSQLite < IntegrationTest
 
   def test_execute_hooks
     assert_includes @push_output, [
+      "0.0.127.in-addr.arpa has been updated",
       "example.com has been updated",
       "example.org has been updated",
       "Executing 'echo 1' ...",
       "1",
       "Executing './onupdate.sh' ...",
+      "processing 0.0.127.in-addr.arpa ... done",
       "processing example.com ... done",
       "processing example.org ... done",
       "Executing 'echo 2' ...",
@@ -79,6 +81,31 @@ class Backend::TestSQLite < IntegrationTest
     end
 
     records
+  end
+
+  def test_rdns_zone
+    have = fetch_records("0.0.127.in-addr.arpa")
+
+    assert_equal [{
+      name:     "0.0.127.in-addr.arpa",
+      ttl:      3600,
+      prio:     0,
+      content:  [
+        "ns1.example.com",
+        "webmaster.example.com",
+        2124123101,
+        24 * 3600,      # refresh
+        3 * 3600,       # retry
+        7 * 24 * 3600,  # expire
+        48 * 3600,      # min ttl
+      ].join("\t"),
+    }], have.fetch("SOA"), "RRTYPE SOA mismatch"
+
+    {
+      "PTR" => [{ name: "53.0.0.127.in-addr.arpa", content: "ns.localhost", ttl: nil, prio: 0 }],
+    }.each do |rtype, records|
+      assert_equal records, have[rtype], "RRTYPE #{rtype} mismatch"
+    end
   end
 
   def test_example_com_zone

@@ -47,10 +47,11 @@ class IntegrationTest < Minitest::Test
     @on_client.join("templates").each_child(&:delete)
     @on_client.join("zones").each_child(&:delete)
     {
-      "templates/ns.rb"       => "templates/",
-      "zones/example.com.rb"  => "zones/",
-      "zones/example.org.rb"  => "zones/",
-      "onupdate.sh"           => "",
+      "templates/ns.rb"               => "templates/",
+      "zones/0.0.127.in-addr.arpa.rb" => "zones/",
+      "zones/example.com.rb"          => "zones/",
+      "zones/example.org.rb"          => "zones/",
+      "onupdate.sh"                   => "",
     }.each do |src, dst|
       FileUtils.cp root.join("test/fixtures/on-client", src), @on_client.join(dst)
     end

@@ -36,16 +36,42 @@ class Backend::TestBIND < IntegrationTest
 
   def test_execute_hooks
     assert_includes @push_output, [
+      "0.0.127.in-addr.arpa has been created",
       "example.com has been created",
       "example.org has been created",
       "Executing 'echo 1' ...",
       "1",
       "Executing './onupdate.sh' ...",
+      "processing 0.0.127.in-addr.arpa ... done",
       "processing example.com ... done",
       "processing example.org ... done",
       "Executing 'echo 2' ...",
       "2",
     ].join("\n")
+  end
+
+  def test_rdns_zone
+    Dir.chdir @work.join("pdns") do
+      zf = Zonefile.from_file "zones/0.0.127.in-addr.arpa"
+
+      assert_equal({
+        origin:     "@",
+        primary:    "ns1.example.com.",
+        email:      "webmaster.example.com.",
+        refresh:    24 * 3600,
+        ttl:        3600,
+        minimumTTL: 48 * 3600,
+        retry:      3 * 3600,
+        expire:     7 * 24 * 3600,
+        serial:     "2124123101",
+      }, zf.soa)
+
+      EMPTY_RRTYPES.merge({
+        ptr:    [{ name: "53",  ttl: nil,  class: "IN", host: "ns.localhost." }],
+      }).each do |rtype, rrs|
+        assert_equal rrs, zf.records[rtype]
+      end
+    end
   end
 
   def test_example_com_zone

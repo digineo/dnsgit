@@ -169,7 +169,7 @@ class Zone
   # name in not-reversed order
   def ptr(name, host, ttl=nil)
     host = "#{host}." if host[-1] != '.'
-    push :ptr, name, ttl, host: host
+    push :ptr, name.to_s, ttl, host: host
   end
 
   def ptr6(name, *args)
