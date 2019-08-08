@@ -4,31 +4,40 @@
 
 Run your own DNS servers and manage your zones easily with Git.
 
-This piece of **free** software gives you the ability to describe your zone
-files in a **simple DSL** (Domain Specific Language) with **templates** and
-store everything in a **Git repository**.
+This piece of free software gives you the ability to describe your zone
+files in a **simple DSL** (Domain Specific Language) with **templates**
+and store everything in a **Git repository**.
 
-Every time you push your changes, a hook generates all zone files and increases
-serial numbers, if necessary. We have been inspired by [LuaDNS](http://www.luadns.com/).
+Every time you push your changes, a hook generates all zone files and,
+if necessary, increases serial numbers. This has been inspired by
+[LuaDNS](http://www.luadns.com/).
 
-DNS Git has been tested with:
-* [PowerDNS](https://www.powerdns.com/)
+
+## Pre-requisites
+
+DNS Git has been tested with version 4.1.1 of the
+[PowerDNS Authoritative Server](https://www.powerdns.com/).
+
+DNS Git supports two PowerDNS backends: BIND and SQLite3.
+
+You need to have Git and a recent version of Ruby (>= v2.4) installed on
+your server. If you want to use the SQLite backend, you'll also need
+development packages for Ruby and libsqlite3, plus a C compiler (on
+Debian-based OS, `ruby-dev`, `libsqlite3-dev` and `build-essential` should
+suffice).
 
 
 ## Installation
 
-Please ensure you have Git and a current version of Ruby installed. While
-we aim to be compatible with MRI 2.0+, we currently only test against
-non-EOL versions (i.e. MRI 2.4+ at the time of writing).
-
-Then clone the repository (on the machine your nameserver runs on) and
-install the required libraries using bundler:
+First, clone the repository (on the machine your PowerDNS server runs on):
 
 ```console
 $ ssh root@yourserver.example.com
 # git clone git://github.com/digineo/dnsgit /opt/dnsgit
 # cd /opt/dnsgit
 ```
+
+Then install the required libraries using bundler.
 
 Depending on whether or not you have PowerDNS configured with
 `launch=bind` or `launch=gsqlite3`, you need to execute one of these
@@ -39,10 +48,7 @@ commands:
 # bundle install --with=sqlite
 ```
 
-(Please note that sqlite requires building a native Ruby extension. Therefore
-you need to have `libsqlite3-dev`, `ruby-dev` and a C compiler installed.)
-
-Finally, generate a sample configuration.
+Finally, initialize a sample configuration repository:
 
 ```console
 # bin/init
@@ -80,8 +86,8 @@ On error, your commit will be rejected.
 
 ### Examples
 
-Take a look at the [lib/example/](https://github.com/digineo/dnsgit/tree/master/lib/example)
-folder and the [tests](https://github.com/digineo/dnsgit/tree/master/tests/zone_test.rb).
+Take a look at the [lib/example/](lib/example/) and [tests](test/unit/)
+folders.
 
 
 ## Development
