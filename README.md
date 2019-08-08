@@ -87,3 +87,25 @@ folder and the [tests](https://github.com/digineo/dnsgit/tree/master/tests/zone_
 ## Development
 
 To run tests, simply invoke `rake`.
+
+## Debug output
+
+To get a detailed log of what happens on a `git push`, modify
+`bin/hooks/pre-receive` on the server:
+
+```diff
+ # Generate Zones
+-ruby -I$basedir/lib $basedir/bin/run.rb
++DNSGIT_DEBUG=all ruby -I$basedir/lib $basedir/bin/run.rb
+```
+
+You can reduce the log amount by setting `DNSGIT-DEBUG` to a comma-separated
+list of (lowercase) class names. Known log-enabled classes include:
+
+- `bind` - for the BIND backend
+- `sqlite` - for the SQLite backend
+- `work` - for more details in the SQLite backend
+- `zone` - logs effects of your DSL files
+
+The class names of log-enabled classes are printed in magenta in the
+log output.
