@@ -120,8 +120,6 @@ module Backend
         next unless zones.key?(domain)
         _, _, serial, _, _, _, _ = rrdata.split(/\s+/)
 
-        logger.warn { zones[domain].zonefile.output }
-
         zones[domain].id          = id
         zones[domain].serial      = serial
         zones[domain].need_update = zones[domain].checksum != checksum
