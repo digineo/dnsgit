@@ -3,12 +3,14 @@ Bundler.require :sqlite
 
 module Backend
   class SQLite < Base
-    attr_reader :db
+    attr_reader :db, :meta
 
     def initialize(*)
       super
 
-      @db = SQLite3::Database.new config.fetch(:sqlite).fetch(:db_path)
+      cfg = config.fetch(:sqlite)
+      @db = SQLite3::Database.new cfg.fetch(:db_path)
+      @meta = cfg.fetch(:meta, {})
       db.foreign_keys = true
       prime_database!
       prepare_statements!
@@ -103,6 +105,17 @@ module Backend
     SQL
     private_constant :INSERT_RECORD_SQL
 
+    UPDATE_DOMAIN_METADATA_SQL = <<~SQL.freeze
+      insert or replace into domainmetadata (id, domain_id, kind, content)
+        values (
+          (select id from domainmetadata where domain_id = :domain_id and kind = :kind),
+          :domain_id,
+          :kind,
+          :content
+        )
+    SQL
+    private_constant :UPDATE_DOMAIN_METADATA_SQL
+
     # retrieves the SOA record's serial number for each domain in
     # `zones` and overrides the value of a domain's zonefile.
     def annotate_state(zones)
@@ -154,6 +167,7 @@ module Backend
       end
 
       zones.each do |domain, work|
+        set_metadata(work.id)
         next unless work.need_update
 
         if work.id.nil?
@@ -202,6 +216,7 @@ module Backend
         domain_checksum:  db.prepare(UPDATE_DOMAIN_CHECKSUM_SQL),
         delete_record:    db.prepare(DELETE_RECORD_SQL),
         insert_record:    db.prepare(INSERT_RECORD_SQL),
+        update_metadata:  db.prepare(UPDATE_DOMAIN_METADATA_SQL),
       }
     end
 
@@ -219,6 +234,24 @@ module Backend
       zone = Zone.new(domain, src_template_dir.to_s, soa)
       zone.send :eval_file, file.to_s
       zone.zonefile
+    end
+
+    def set_metadata(domain_id)
+      return if domain_id.nil? || meta.empty?
+
+      db.transaction do
+        meta.each do |kind, content|
+          # :notify_dnsupdate => "NOTIFY-DNSUPDATE"
+          kind  = kind.to_s.split("_").join("-").upcase
+          value = value.to_s
+
+          execute_prepared(:update_metadata, {
+            "domain_id" => domain_id,
+            "kind"      => kind,
+            "content"   => content,
+          })
+        end
+      end
     end
 
     def prime_database!

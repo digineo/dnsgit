@@ -199,4 +199,27 @@ class Backend::TestSQLite < IntegrationTest
     assert_includes @push_output, "example.com has been updated"
     refute_equal zone[:old], zone[:new], "example.com zone did not change (it ought to)"
   end
+
+  def test_global_metadata
+    cfg = YAML.load_file @on_client.join("config.yaml")
+    cfg["sqlite"]["meta"] = { "notify_dnsupdate" => 1 }
+    @on_client.join("config.yaml").open("w") {|f| f.write(cfg.to_yaml) }
+    commit!
+
+    meta = Hash.new {|h,k| h[k] = {} }
+    with_db do |db|
+      q = <<~SQL
+        select domains.name, m.kind, m.content
+        from domainmetadata m
+        inner join domains on domains.id = m.domain_id
+      SQL
+      db.execute(q) do |name, kind, content|
+        meta[name][kind] = content
+      end
+    end
+
+    expected = { "NOTIFY-DNSUPDATE" => "1" }
+    assert_equal expected, meta.fetch("example.com")
+    assert_equal expected, meta.fetch("example.org")
+  end
 end
