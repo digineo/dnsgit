@@ -1,12 +1,16 @@
 version: 2
 jobs:
-  ruby26: &base
+  ruby27: &base
     docker:
-      - image: circleci/ruby:2.6
+      - image: circleci/ruby:2.7
     steps:
       - checkout
       - run: bundle install --jobs=4 --retry=3
       - run: bundle exec rake test
+  ruby26:
+    <<: *base
+    docker:
+      - image: circleci/ruby:2.6
   ruby25:
     <<: *base
     docker:
@@ -20,6 +24,7 @@ workflows:
   version: 2
   build:
     jobs:
+      - ruby27
       - ruby26
       - ruby25
       - ruby24
