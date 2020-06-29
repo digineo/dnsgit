@@ -33,10 +33,12 @@ class IntegrationTest < Minitest::Test
     @on_server = @work.join("on-server")
     @on_client = @work.join("on-client")
 
-    # clone a copy of root dir into tmpwd/on-server
+    # copy necessary files into tmpwd/on-server
     # (cp is faster than `git clone ../ ./on-server`)
     root = Pathname.new(__dir__).join("..")
-    FileUtils.cp_r root, @on_server
+    %w[bin lib].each do |ent|
+      FileUtils.cp_r root.join(ent), @on_server.tap(&:mkpath)
+    end
 
     # initialize copy
     Dir.chdir @on_server do
