@@ -221,4 +221,30 @@ class Backend::TestSQLite < IntegrationTest
     assert_equal expected, meta.fetch("example.com")
     assert_equal expected, meta.fetch("example.org")
   end
+
+  def test_busy_retry
+    # make DB busy by modifying the DB file in a long running transaction
+    # TODO: can we simplify this?
+    t = Thread.new {
+      SQLite3::Database.new(@db_path.to_s) do |db|
+        db.transaction {
+          db.execute "insert into domains(name, type) values ('test-busy.retry', 'MASTER')"
+          sleep 2
+          db.execute "delete from domains where name = 'test-busy.retry'"
+        }
+      end
+    }
+
+    # pushing changes should wait for the busy database
+    @on_client.join("zones/example.com.rb").open("a") do |z|
+      z.puts "", "txt 'foo'"
+    end
+    commit!
+    t.join
+
+    # Did we actually caught a busy database? Depending on the accuracy
+    # of the sleep above and the thread scheduling, @push_output sometimes
+    # contains a "retry 2 of 10".
+    assert_includes @push_output, "Database is busy, retry 1 of 10 in 1s"
+  end
 end

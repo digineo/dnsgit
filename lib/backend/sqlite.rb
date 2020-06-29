@@ -11,6 +11,15 @@ module Backend
       cfg = config.fetch(:sqlite)
       @db = SQLite3::Database.new cfg.fetch(:db_path)
       @meta = cfg.fetch(:meta, {})
+
+      if (n = cfg.fetch(:retries, 10).to_i) && n > 0
+        @db.busy_handler { |count|
+          puts "Database is busy, retry #{count+1} of #{n} in 1s"
+          sleep 1
+          count < n
+        }
+      end
+
       db.foreign_keys = true
       prime_database!
       prepare_statements!
