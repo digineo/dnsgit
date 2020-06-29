@@ -22,11 +22,6 @@ class Backend::TestBIND < IntegrationTest
     end
   end
 
-  def teardown
-    puts @raw_output if failures.length > 0
-    @work.rmtree     if @work.exist?
-  end
-
   def test_create_files
     Dir.chdir @work.join("pdns") do
       assert File.exist?("zones/example.com")

@@ -20,8 +20,7 @@ class Backend::TestSQLite < IntegrationTest
     keep_db = ENV["DNSGIT_KEEP_DB"] == "1" && @db_path.exist?
 
     FileUtils.cp @db_path, "/tmp/"  if keep_db
-    puts @raw_output                if failures.length > 0
-    @work.rmtree                    if @work.exist?
+    super
   end
 
   def test_create_db_file

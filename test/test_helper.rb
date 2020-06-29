@@ -3,6 +3,16 @@ require "tmpdir"
 require File.expand_path("../lib/environment",  __dir__)
 
 class IntegrationTest < Minitest::Test
+  def initialize(*)
+    super
+    @raw_output = nil
+  end
+
+  def teardown
+    puts @raw_output if @raw_output && failures.length > 0
+    @work.rmtree     if @work.exist?
+  end
+
   def execute(cmd, *args)
     cmd = [cmd, *args].map(&:to_s)
     out = IO.popen(cmd, "r", err: [:child, :out], &:read)
