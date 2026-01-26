@@ -1,6 +1,7 @@
 # DNS Git
 
-[![CircleCI](https://circleci.com/gh/digineo/dnsgit.svg?style=svg)](https://circleci.com/gh/digineo/dnsgit)
+[![Tests](https://github.com/digineo/dnsgit/actions/workflows/test.yml/badge.svg)](https://github.com/digineo/dnsgit/actions/workflows/test.yml)
+
 
 Run your own DNS servers and manage your zones easily with Git.
 
