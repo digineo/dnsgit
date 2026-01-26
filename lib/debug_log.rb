@@ -1,3 +1,5 @@
+require "set"
+
 class DebugLog
   module Logger
     private
@@ -6,7 +8,7 @@ class DebugLog
     end
   end
 
-  ENABLED_FOR = Set.new(ENV.fetch("DNSGIT_DEBUG", "").downcase.split(",")).freeze
+  ENABLED_FOR = ::Set.new(ENV.fetch("DNSGIT_DEBUG", "").downcase.split(",")).freeze
 
   COLOR_CODES = {
     DEBUG:  34,     # blue
