@@ -9,6 +9,10 @@ class Zone
     def txt(text, ttl=nil)
       zone.txt(*[host, text, ttl].compact)
     end
+
+    def caa(flag, tag, value, ttl=nil)
+      zone.caa(*[flag, tag, value, host, ttl].compact)
+    end
   end
 
   SOA_FIELDS = %i(
@@ -74,6 +78,13 @@ class Zone
     Nested.new(self, name).instance_eval(&block) if block_given?
   end
 
+  def caa(flag, tag, value, *args)
+    ttl  = extract_ttl! args
+    name = args.pop || '@'
+
+    push :caa, name, ttl, flag: flag, tag: tag, value: value
+  end
+
   # mx                - host with default priority (10)
   # mx, 15            - host and priority
   # mx, 15, 600       - host, priority and TTL
@@ -114,7 +125,7 @@ class Zone
 
   def srv(*args)
     options  = extract_options! args
-    name     = "." << args.shift if args[0].is_a?(String)
+    name     = ".#{args.shift}" if args[0].is_a?(String)
 
     raise ArgumentError, "wrong number of arguments" unless (4..5).include?(args.count)
 
@@ -149,7 +160,7 @@ class Zone
   def tlsa(*args)
     ttl      = extract_ttl! args
     name     = args.shift if String===args[0]
-    name     = (name=="@" || !name) ? '' : "." << name
+    name     = (name == "@" || !name) ? '' : ".#{name}"
     port, proto, usage, selector, matching, data = args.shift(6)
 
     raise ArgumentError, "invalid port: #{port}"              if port < 0 || port > 65535

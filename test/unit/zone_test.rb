@@ -42,6 +42,23 @@ describe Zone do
     end
   end
 
+  describe "caa record" do
+    it "should create record" do
+      subject.caa 0, "issue", "letsencrypt.org"
+      _(subject.zonefile.caa).must_equal [{ class: "IN", name: "@", ttl: nil, flag: 0, tag: "issue", value: "letsencrypt.org"}]
+    end
+
+    it "should create record, host" do
+      subject.caa 0, "issue", "letsencrypt.org", "www"
+      _(subject.zonefile.caa).must_equal [{ class: "IN", name: "www", ttl: nil, flag: 0, tag: "issue", value: "letsencrypt.org"}]
+    end
+
+    it "should create record, host, ttl" do
+      subject.caa 0, "issue", "letsencrypt.org", "ttl", 600
+      _(subject.zonefile.caa).must_equal [{ class: "IN", name: "ttl", ttl: 600, flag: 0, tag: "issue", value: "letsencrypt.org"}]
+    end
+  end
+
   describe "cname record" do
     it "without args" do
       assert_raises ArgumentError do
@@ -77,13 +94,15 @@ describe Zone do
         cname "www2", 600
         txt "yada"
         txt "yada-yada", 60
+        caa 0, "issue", "letsencrypt.org"
       end
 
       _(subject.zonefile.a).must_equal     [{class: "IN", name: "test", ttl: nil, host: "127.0.0.1"}]
       _(subject.zonefile.cname).must_equal [{class: "IN", name: "www",  ttl: nil, host: "test"},
-                                         {class: "IN", name: "www2", ttl: 600, host: "test"}]
+                                            {class: "IN", name: "www2", ttl: 600, host: "test"}]
       _(subject.zonefile.txt).must_equal   [{class: "IN", name: "test", ttl: nil, text: "yada"},
-                                         {class: "IN", name: "test", ttl: 60,  text: "yada-yada"}]
+                                            {class: "IN", name: "test", ttl: 60,  text: "yada-yada"}]
+      _(subject.zonefile.caa).must_equal   [{class: "IN", name: "test", ttl: nil, flag: 0, tag: "issue", value: "letsencrypt.org"}]
     end
   end
 
