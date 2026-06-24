@@ -55,7 +55,7 @@ class Backend::TestSQLite < IntegrationTest
     assert have.key?("example.org")
     # If this test fails on or after 2125-01-01: congratulations, you're
     # looking at centennial code. Do you still use DNS in the future?
-    assert_equal "fdaa632ef880afde15d677a6e9cf6ed391b9593e", have["example.com"]
+    assert_equal "702b427c822d637ace0ae3020800735cf4aa48a2", have["example.com"]
     assert_equal "fc9982b93739c4ff3b45becb56b37c220422e344", have["example.org"]
   end
 
@@ -125,12 +125,13 @@ class Backend::TestSQLite < IntegrationTest
     }], have.fetch("SOA"), "RRTYPE SOA mismatch"
 
     {
-      "A"     => [{ name: "example.com",     content: "192.168.1.1",          ttl: nil,  prio: 0 },
-                  { name: "a.example.com",   content: "192.168.1.2",          ttl: 3600, prio: 0 }],
-      "AAAA"  => [{ name: "example.com",     content: "2001:4860:4860::8888", ttl: nil,  prio: 0 }],
-      "CNAME" => [{ name: "www.example.com", content: "example.com",          ttl: nil,  prio: 0 }],
-      "MX"    => [{ name: "example.com",     content: "mx1.example.com",      ttl: nil,  prio: 10 }],
-      "NS"    => [{ name: "example.com",     content: "ns1.example.com",      ttl: nil,  prio: 0 }]
+      "A"     => [{ name: "example.com",     content: "192.168.1.1",               ttl: nil,  prio: 0 },
+                  { name: "a.example.com",   content: "192.168.1.2",               ttl: 3600, prio: 0 }],
+      "AAAA"  => [{ name: "example.com",     content: "2001:4860:4860::8888",      ttl: nil,  prio: 0 }],
+      "CNAME" => [{ name: "www.example.com", content: "example.com",               ttl: nil,  prio: 0 }],
+      "MX"    => [{ name: "example.com",     content: "mx1.example.com",           ttl: nil,  prio: 10 }],
+      "NS"    => [{ name: "example.com",     content: "ns1.example.com",           ttl: nil,  prio: 0 }],
+      "CAA"   => [{ name: "example.com",     content: '0 issue "letsencrypt.org"', ttl: nil,  prio: 0 }],
     }.each do |rtype, records|
       assert_equal records, have[rtype], "RRTYPE #{rtype} mismatch"
     end

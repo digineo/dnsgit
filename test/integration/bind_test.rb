@@ -92,6 +92,7 @@ class Backend::TestBIND < IntegrationTest
         cname:  [{ name: "www", ttl: nil,  class: "IN", host: "@" }],
         mx:     [{ name: "@",   ttl: nil,  class: "IN", host: "mx1", pri: 10 }],
         ns:     [{ name: "@",   ttl: nil,  class: "IN", host: "ns1.example.com." }],
+        caa:    [{ name: "@",   ttl: nil,  class: "IN", flag: 0, tag: "issue", value: "letsencrypt.org" }],
       }).each do |rtype, rrs|
         assert_equal rrs, zf.records[rtype]
       end

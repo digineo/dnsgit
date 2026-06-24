@@ -205,6 +205,9 @@ module Backend
     def upsert_domain_record(domain_id, rr, default_ttl)
       prio, content = if %w[MX SRV].include?(rr.type)
         rr.data.split(/\s+/, 2)
+      elsif rr.type == "CAA"
+        flag, tag, value = rr.data.split("\t", 3)
+        [0, %(#{flag} #{tag} "#{value}")]
       else
         [0, rr.data]
       end

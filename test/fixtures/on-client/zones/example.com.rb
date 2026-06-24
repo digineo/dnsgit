@@ -12,3 +12,4 @@ a "a", "192.168.1.2", 3600
 aaaa "2001:4860:4860::8888"
 mx "mx1", 10
 cname "www", "@"
+caa 0, "issue", "letsencrypt.org"
